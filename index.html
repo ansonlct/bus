@@ -68,6 +68,17 @@
             border-radius: 12px; border: none;
             background: var(--card-bg); color: var(--text-main); font-size: 1.1rem;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05); outline: none;
+            transition: border 0.2s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        .search-input.shake {
+            animation: shake 0.4s ease-in-out;
+            border: 1px solid #FF3B30 !important;
         }
         
         .clear-input-btn {
@@ -108,15 +119,7 @@
         .search-btn:active { transform: scale(0.96); opacity: 0.9; }
         .search-btn:disabled { background: var(--text-sub); cursor: not-allowed; box-shadow: none; }
 
-        .clear-all-btn {
-            width: 42px; height: 42px; background: #8E8E93; color: white;
-            border: none; border-radius: 12px; font-size: 1.2rem;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: opacity 0.2s;
-        }
-        .clear-all-btn:active { opacity: 0.8; transform: scale(0.96); }
-
-        .content-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px 16px; scroll-behavior: smooth; }
+        .content-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px 16px; scroll-behavior: smooth; display: flex; flex-direction: column;}
 
         /* --- 卡片樣式 --- */
         .card {
@@ -126,6 +129,7 @@
             position: relative;
             animation: slideIn 0.3s ease-out;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            flex-shrink: 0;
         }
         .card.dragging {
             opacity: 0.5; background: #f8f8f8; box-shadow: 0 10px 20px rgba(0,0,0,0.2); z-index: 100;
@@ -147,10 +151,6 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 1.2rem; color: rgba(255, 255, 255, 0.6); cursor: grab; z-index: 15;
             touch-action: none;
-        }
-        
-        .card-actions {
-            position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; z-index: 10;
         }
         
         .close-card-btn {
@@ -227,6 +227,32 @@
         #empty-state { text-align: center; padding: 60px 20px; color: var(--text-sub); display: flex; flex-direction: column; align-items: center; }
         #empty-state .big-icon { font-size: 4rem; margin-bottom: 20px; opacity: 0.3; }
 
+        /* --- 底部新增區域 --- */
+        #add-card-section {
+            padding: 20px 0 40px; display: none; flex-direction: column; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .add-circle-btn {
+            width: 56px; height: 56px; border-radius: 50%;
+            background: var(--card-bg); color: var(--kmb-red);
+            font-size: 2rem; border: none; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s;
+        }
+        .add-circle-btn:active { transform: scale(0.9); }
+        
+        #add-search-wrapper {
+            display: none; width: 100%; gap: 8px; animation: slideUp 0.2s ease-out;
+            background: var(--bg-color); padding: 5px; border-radius: 12px;
+        }
+        #add-search-wrapper.active { display: flex; }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* --- 側邊欄 Sidebar --- */
         .sidebar-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -250,7 +276,6 @@
         
         .sidebar-content { flex: 1; overflow-y: auto; padding: 10px 0; }
 
-        /* 側邊欄設定 */
         .sidebar-settings {
             padding: 15px 16px;
             border-bottom: 1px solid var(--separator);
@@ -259,9 +284,7 @@
         }
         .setting-label { font-size: 1rem; color: var(--text-main); font-weight: 600; }
         
-        .ios-switch {
-            position: relative; display: inline-block; width: 51px; height: 31px;
-        }
+        .ios-switch { position: relative; display: inline-block; width: 51px; height: 31px; }
         .ios-switch input { opacity: 0; width: 0; height: 0; }
         .slider {
             position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
@@ -361,29 +384,49 @@
         <div class="menu-btn" onclick="toggleSidebar(true)">☰</div>
         <div class="search-wrapper">
             <input type="text" id="route-input" class="search-input" 
-                   placeholder="輸入路線 (如 900)" value="" 
+                   placeholder="輸入路線" value="" 
                    autocomplete="off"
-                   oninput="handleInput()" 
-                   onfocus="handleInput()"
-                   onkeypress="if(event.key==='Enter') searchRoute()">
+                   oninput="handleInput(this, 'suggestions', 'clear-search')" 
+                   onfocus="handleInput(this, 'suggestions', 'clear-search')"
+                   onkeypress="if(event.key==='Enter') searchTopRoute()">
             
-            <div id="clear-search" class="clear-input-btn" onclick="clearSearch()">✕</div>
+            <div id="clear-search" class="clear-input-btn" onclick="clearSearch('route-input')">✕</div>
             <div id="suggestions" class="suggestions-list"></div>
         </div>
         
-        <button id="search-btn" class="search-btn" onclick="searchRoute()">查詢</button>
-        <button class="clear-all-btn" onclick="clearAllCards()" title="清除所有">🗑</button>
+        <button id="search-btn" class="search-btn" onclick="searchTopRoute()">查詢</button>
     </div>
 
-    <div class="content-scroll" id="cards-container">
-        <div id="empty-state">
-            <div class="big-icon">🚍</div>
-            <div>請輸入路線號碼開始查詢</div>
+    <div class="content-scroll">
+        <div id="cards-container">
+            <div id="empty-state">
+                <div class="big-icon">🚍</div>
+                <div>請輸入路線號碼開始查詢</div>
+            </div>
+        </div>
+
+        <!-- 底部新增按鈕區域 -->
+        <div id="add-card-section">
+            <button id="show-add-btn" class="add-circle-btn" onclick="toggleAddSearch(true)">＋</button>
+            <div id="add-search-wrapper">
+                <div class="search-wrapper">
+                    <input type="text" id="add-route-input" class="search-input" 
+                           placeholder="輸入路線" value="" autocomplete="off"
+                           oninput="handleInput(this, 'add-suggestions', 'add-clear-search')" 
+                           onfocus="handleInput(this, 'add-suggestions', 'add-clear-search')"
+                           onkeypress="if(event.key==='Enter') addRoute()">
+                    
+                    <div id="add-clear-search" class="clear-input-btn" onclick="clearSearch('add-route-input')">✕</div>
+                    <div id="add-suggestions" class="suggestions-list"></div>
+                </div>
+                <button class="search-btn" onclick="addRoute()">新增</button>
+                <button class="search-btn" style="background:var(--text-sub)" onclick="toggleAddSearch(false)">✕</button>
+            </div>
         </div>
     </div>
         
     <div style="text-align:center; font-size:0.7rem; color:var(--text-sub); margin-top:10px; padding-bottom: 20px;">
-        資料來源：DATA.GOV.HK<br>Designed by AI
+        資料來源：DATA.GOV.HK<br>Designed by Anson Lam
     </div>
 </div>
 
@@ -406,8 +449,9 @@
         }
 
         document.addEventListener('click', (e) => {
-            const wrapper = document.querySelector('.search-wrapper');
-            if (!wrapper.contains(e.target)) { hideSuggestions(); }
+            if (!e.target.closest('.search-wrapper')) {
+                document.querySelectorAll('.suggestions-list').forEach(el => el.classList.remove('show'));
+            }
         });
 
         const container = document.getElementById('cards-container');
@@ -427,7 +471,6 @@
             e.preventDefault();
             if (!isEditMode) return;
             if (!document.querySelector('.saved-item.dragging')) return;
-
             const afterElement = getDragAfterElement(sidebarList, e.clientY, '.saved-item');
             const draggable = document.querySelector('.saved-item.dragging');
             if (draggable) {
@@ -437,34 +480,23 @@
         });
     });
 
-    // ==========================================================
-    //  Storage Manager (with Temp List for Edit Mode)
-    // ==========================================================
     const StorageManager = {
         key: 'kmb_saved_list',
-        tempList: null, // 暫存列表
+        tempList: null, 
         
         getList: () => {
-            if (isEditMode && StorageManager.tempList !== null) {
-                return StorageManager.tempList;
-            }
+            if (isEditMode && StorageManager.tempList !== null) return StorageManager.tempList;
             return JSON.parse(localStorage.getItem(StorageManager.key) || '[]');
         },
 
         saveItem: (name, cardsData) => {
-            // 新增項目時直接寫入 localStorage (不走 temp)
             let list = JSON.parse(localStorage.getItem(StorageManager.key) || '[]');
             list.push({ id: Date.now(), name: name, data: cardsData });
             localStorage.setItem(StorageManager.key, JSON.stringify(list));
-            
-            // 如果在編輯模式下新增，需要更新 temp 避免衝突，但簡單起見，我們假設新增會直接更新畫面
-            if (isEditMode) {
-                 StorageManager.tempList = list;
-            }
+            if (isEditMode) StorageManager.tempList = list;
             StorageManager.renderList();
         },
 
-        // 刪除 (操作 Temp 或 Real)
         deleteItem: (id) => {
             if (isEditMode) {
                 StorageManager.tempList = StorageManager.tempList.filter(item => item.id !== id);
@@ -480,7 +512,6 @@
             if (!isEditMode) return;
             const item = StorageManager.tempList.find(x => x.id === id);
             if (!item) return;
-            
             const newName = prompt("請輸入新名稱:", item.name);
             if (newName && newName.trim() !== "") {
                 item.name = newName.trim();
@@ -488,15 +519,12 @@
             }
         },
 
-        // 更新順序 (更新到 Temp)
         updateOrderFromDOM: () => {
             if (!isEditMode) return;
-            
             const container = document.getElementById('saved-list-container');
             const items = container.querySelectorAll('.saved-item');
             const oldList = StorageManager.tempList;
             const newList = [];
-
             items.forEach(el => {
                 const id = parseInt(el.getAttribute('data-id'));
                 const data = oldList.find(x => x.id === id);
@@ -506,7 +534,6 @@
             StorageManager.renderList(); 
         },
 
-        // 正式提交 Temp 到 LocalStorage
         commitChanges: () => {
             if (StorageManager.tempList !== null) {
                 localStorage.setItem(StorageManager.key, JSON.stringify(StorageManager.tempList));
@@ -514,19 +541,9 @@
             }
         },
 
-        // 捨棄 Temp (還原)
-        discardChanges: () => {
-            StorageManager.tempList = null;
-        },
-
-        // 初始化 Temp
-        initTemp: () => {
-             StorageManager.tempList = JSON.parse(localStorage.getItem(StorageManager.key) || '[]');
-        },
-
-        loadAll: () => {
-            StorageManager.renderList();
-        },
+        discardChanges: () => { StorageManager.tempList = null; },
+        initTemp: () => { StorageManager.tempList = JSON.parse(localStorage.getItem(StorageManager.key) || '[]'); },
+        loadAll: () => { StorageManager.renderList(); },
 
         renderList: () => {
             const list = StorageManager.getList();
@@ -544,11 +561,8 @@
                     desc = `${item.data.length} 個路線組合`;
                 } else {
                     const d = item.data[0];
-                    if (d.destName) {
-                        desc = `${d.route} 往 ${d.destName}`;
-                    } else {
-                        desc = `${d.route} ${d.dir==='outbound'?'去程':'回程'}`;
-                    }
+                    if (d.destName) desc = `${d.route} 往 ${d.destName}`;
+                    else desc = `${d.route} ${d.dir==='outbound'?'去程':'回程'}`;
                 }
 
                 return `
@@ -582,9 +596,7 @@
                 });
                 
                 const handle = item.querySelector('.saved-drag-handle');
-                handle.addEventListener('touchstart', (e) => { 
-                    item.classList.add('dragging'); 
-                }, {passive: true});
+                handle.addEventListener('touchstart', (e) => { item.classList.add('dragging'); }, {passive: true});
                 handle.addEventListener('touchend', () => {
                      item.classList.remove('dragging');
                      if(isEditMode) StorageManager.updateOrderFromDOM();
@@ -604,29 +616,18 @@
         }
     };
 
-    // ==========================================================
-    //  UI Actions
-    // ==========================================================
     function toggleSidebar(show) {
         const sb = document.getElementById('sidebar');
         const ov = document.getElementById('overlay');
-        
-        if (show) { 
-            sb.classList.add('active'); ov.classList.add('active'); 
-        } else { 
-            // 關閉側邊欄時，若在編輯模式，則還原 (不儲存)
+        if (show) { sb.classList.add('active'); ov.classList.add('active'); } 
+        else { 
             if (isEditMode) {
-                // 自動退出編輯模式並還原
                 isEditMode = false;
                 StorageManager.discardChanges();
-                
-                // UI 還原
                 const btn = document.getElementById('edit-btn');
-                btn.innerHTML = '✎'; 
-                btn.classList.remove('active');
+                btn.innerHTML = '✎'; btn.classList.remove('active');
                 StorageManager.renderList();
             }
-            
             sb.classList.remove('active'); ov.classList.remove('active'); 
         }
     }
@@ -634,28 +635,19 @@
     function toggleEditMode() {
         isEditMode = !isEditMode;
         const btn = document.getElementById('edit-btn');
-        
         if (isEditMode) {
-            // 進入編輯模式：初始化 Temp
             StorageManager.initTemp();
-            btn.innerHTML = '💾'; 
-            btn.classList.add('active');
+            btn.innerHTML = '💾'; btn.classList.add('active');
         } else {
-            // 退出編輯模式 (按下儲存)：寫入 DB
             StorageManager.commitChanges();
-            btn.innerHTML = '✎'; 
-            btn.classList.remove('active');
+            btn.innerHTML = '✎'; btn.classList.remove('active');
         }
-        
         StorageManager.renderList();
     }
 
     function onSavedItemClick(id) {
-        if (isEditMode) {
-            StorageManager.renameItem(id);
-        } else {
-            loadSavedItem(id);
-        }
+        if (isEditMode) StorageManager.renameItem(id);
+        else loadSavedItem(id);
     }
 
     function saveCurrentAsGroup() {
@@ -666,9 +658,7 @@
         if (cards.length > 0) {
             const firstCard = window.cardRegistry[cards[0].id];
             defaultName = `九巴 ${firstCard.route}`;
-            if (firstCard.currentDestName) {
-                defaultName += ` 往 ${firstCard.currentDestName}`;
-            }
+            if (firstCard.currentDestName) defaultName += ` 往 ${firstCard.currentDestName}`;
         }
         if (cards.length > 1) defaultName = '我的通勤組合';
 
@@ -688,7 +678,6 @@
                 });
             }
         });
-
         StorageManager.saveItem(name, data);
     }
 
@@ -696,65 +685,67 @@
         const list = StorageManager.getList();
         const item = list.find(x => x.id === id);
         if (!item) return;
-
         clearAllCards(false);
-        
-        item.data.forEach(d => {
-            createCard(d.route, d);
-        });
-        
+        item.data.forEach(d => createCard(d.route, d));
         toggleSidebar(false);
     }
 
     function deleteSaved(e, id) {
         e.stopPropagation();
-        if(confirm('確定要刪除嗎？')) {
-            StorageManager.deleteItem(id);
-        }
+        if(confirm('確定要刪除嗎？')) StorageManager.deleteItem(id);
     }
 
     function clearAllCards(showEmpty = true) {
         const container = document.getElementById('cards-container');
         container.innerHTML = '';
         window.cardRegistry = {};
-        
         if (showEmpty) {
             const emptyState = document.createElement('div');
             emptyState.id = 'empty-state';
             emptyState.innerHTML = '<div class="big-icon">🚍</div><div>請輸入路線號碼開始查詢</div>';
             container.appendChild(emptyState);
         }
+        
+        // 隱藏底部新增按鈕
+        document.getElementById('add-card-section').style.display = 'none';
     }
 
-    // ==========================================================
-    //  Input Logic
-    // ==========================================================
-    function handleInput() {
-        const input = document.getElementById('route-input');
-        const clearBtn = document.getElementById('clear-search');
-        const val = input.value.trim().toUpperCase();
-        
-        if (input.value.length > 0) {
-            clearBtn.style.display = 'flex';
+    // --- Search & Input Logic ---
+    function toggleAddSearch(show) {
+        const btn = document.getElementById('show-add-btn');
+        const wrapper = document.getElementById('add-search-wrapper');
+        const input = document.getElementById('add-route-input');
+        if (show) {
+            btn.style.display = 'none';
+            wrapper.classList.add('active');
+            input.focus();
         } else {
-            clearBtn.style.display = 'none';
+            btn.style.display = 'flex';
+            wrapper.classList.remove('active');
+        }
+    }
+
+    function handleInput(inputEl, suggestionId, clearBtnId) {
+        const val = inputEl.value.trim().toUpperCase();
+        const clearBtn = document.getElementById(clearBtnId);
+        
+        clearBtn.style.display = val.length > 0 ? 'flex' : 'none';
+
+        if (!val || allRoutesDB.length === 0) { 
+            document.getElementById(suggestionId).classList.remove('show'); 
+            return; 
         }
 
-        const btn = document.getElementById('search-btn');
-        const list = document.getElementById('suggestions');
-        
-        if (val && validRouteSet.size > 0 && !validRouteSet.has(val)) {
-            btn.disabled = true; btn.innerText = '無此路線'; btn.style.background = 'var(--text-sub)';
-        } else {
-            btn.disabled = false; btn.innerText = '查詢'; btn.style.background = 'var(--kmb-red)';
-        }
-
-        if (!val || allRoutesDB.length === 0) { hideSuggestions(); return; }
         const matches = allRoutesDB.filter(r => r.route.startsWith(val)).slice(0, 50); 
-        if (matches.length === 0) { hideSuggestions(); return; }
+        const list = document.getElementById(suggestionId);
+        
+        if (matches.length === 0) {
+            list.classList.remove('show');
+            return;
+        }
 
         list.innerHTML = matches.map(r => `
-            <div class="suggestion-item" onmousedown="selectSuggestion('${r.route}')">
+            <div class="suggestion-item" onmousedown="selectSuggestion('${r.route}', '${inputEl.id}', '${suggestionId}', '${clearBtnId}')">
                 <span class="sug-route">${r.route}</span>
                 <span class="sug-desc">${r.orig} ⇄ ${r.dest}</span>
             </div>
@@ -762,37 +753,80 @@
         list.classList.add('show');
     }
 
-    function clearSearch() {
-        const input = document.getElementById('route-input');
+    function clearSearch(inputId) {
+        const input = document.getElementById(inputId);
         input.value = '';
-        handleInput(); 
+        const clearBtnId = inputId === 'route-input' ? 'clear-search' : 'add-clear-search';
+        document.getElementById(clearBtnId).style.display = 'none';
         input.focus();
     }
 
-    function hideSuggestions() { document.getElementById('suggestions').classList.remove('show'); }
-    function selectSuggestion(route) { 
-        document.getElementById('route-input').value = route; 
-        handleInput(); 
-        hideSuggestions(); 
-        searchRoute(); 
+    function selectSuggestion(route, inputId, suggestionId, clearBtnId) {
+        const input = document.getElementById(inputId);
+        input.value = route;
+        document.getElementById(suggestionId).classList.remove('show');
+        
+        if (inputId === 'route-input') searchTopRoute();
+        else addRoute();
     }
 
-    function searchRoute() {
+    // Shake animation for error
+    function triggerShake(inputId) {
+        const input = document.getElementById(inputId);
+        input.classList.add('shake');
+        setTimeout(() => input.classList.remove('shake'), 400);
+        input.focus();
+    }
+
+    // Top Search (Clear All + Create)
+    function searchTopRoute() {
         const inputEl = document.getElementById('route-input');
         const input = inputEl.value.trim().toUpperCase();
         if (!input) return;
-        if (validRouteSet.size > 0 && !validRouteSet.has(input)) { alert('找不到此路線號碼'); inputEl.focus(); return; }
-        inputEl.blur(); hideSuggestions(); 
         
-        if(document.getElementById('empty-state')) {
-             document.getElementById('cards-container').innerHTML = '';
+        // 檢查有效性，無效則搖晃
+        if (validRouteSet.size > 0 && !validRouteSet.has(input)) { 
+            triggerShake('route-input'); 
+            return; 
         }
+        
+        inputEl.blur(); 
+        document.getElementById('suggestions').classList.remove('show'); 
+        
+        clearAllCards(false);
         createCard(input);
     }
+
+    // Bottom Add (Accumulate)
+    function addRoute() {
+        const inputEl = document.getElementById('add-route-input');
+        const input = inputEl.value.trim().toUpperCase();
+        if (!input) return;
+        
+        // 檢查有效性，無效則搖晃
+        if (validRouteSet.size > 0 && !validRouteSet.has(input)) { 
+            triggerShake('add-route-input'); 
+            return; 
+        }
+        
+        createCard(input);
+        
+        // Reset bottom search
+        inputEl.value = '';
+        toggleAddSearch(false);
+    }
     
-    // ==========================================================
-    //  BusRouteCard Class
-    // ==========================================================
+    function createCard(route, savedState = null) {
+        cardCounter++;
+        const newCardId = `card-${cardCounter}`;
+        const newCard = new BusRouteCard(route, newCardId, savedState);
+        window.cardRegistry[newCardId] = newCard;
+        newCard.init();
+        
+        // 有卡片後，顯示底部新增按鈕
+        document.getElementById('add-card-section').style.display = 'flex';
+    }
+
     class BusRouteCard {
         constructor(route, containerId, savedState = null) {
             this.id = containerId; 
@@ -801,9 +835,9 @@
             this.markedSeq = savedState ? savedState.markedSeq : null; 
             this.filteredSeq = savedState ? savedState.filteredSeq : null; 
             this.currentDestName = savedState ? savedState.destName : ''; 
-
             this.lastRows = []; 
             this.element = null; 
+            this.timer = null;
         }
 
         init() {
@@ -850,6 +884,7 @@
 
             this.fetchRouteBoundaries().then(() => {
                 this.fetchBusData();
+                this.timer = setInterval(() => this.fetchBusData(), 30000);
             });
         }
 
@@ -863,10 +898,8 @@
         initDragEvents(cardEl) {
             const handle = cardEl.querySelector('.drag-handle');
             const container = document.getElementById('cards-container');
-            
             cardEl.addEventListener('dragstart', () => { cardEl.classList.add('dragging'); });
             cardEl.addEventListener('dragend', () => { cardEl.classList.remove('dragging'); });
-            
             handle.addEventListener('touchstart', (e) => { cardEl.classList.add('dragging'); }, { passive: true });
             handle.addEventListener('touchend', () => { cardEl.classList.remove('dragging'); });
             handle.addEventListener('touchmove', (e) => {
@@ -880,6 +913,7 @@
 
         destroy() {
             if (this.element) {
+                if (this.timer) clearInterval(this.timer);
                 this.element.style.transition = 'opacity 0.3s, transform 0.3s';
                 this.element.style.opacity = '0';
                 this.element.style.transform = 'scale(0.9)';
@@ -887,7 +921,7 @@
                     this.element.remove();
                     delete window.cardRegistry[this.id];
                     if (Object.keys(window.cardRegistry).length === 0) {
-                        clearAllCards(true);
+                        clearAllCards(true); // 自動恢復 Empty State 並隱藏 + 按鈕
                     }
                 }, 300);
             }
@@ -898,10 +932,8 @@
                 getRouteStops(this.route, 'outbound'), 
                 getRouteStops(this.route, 'inbound')
             ]);
-            
             let outName = '去程';
             let inName = '回程';
-
             const btnOut = this.element.querySelector('.btn-out');
             const btnIn = this.element.querySelector('.btn-in');
 
@@ -920,7 +952,6 @@
                 btnIn.style.display = 'none'; 
                 btnOut.innerText += ' (循環線)';
             }
-            
             this.destMap = { outbound: outName, inbound: inName };
             this.currentDestName = this.destMap[this.dir];
         }
@@ -929,9 +960,7 @@
             if (this.dir === dir) return;
             this.dir = dir;
             this.markedSeq = null; this.filteredSeq = null; 
-            
             if(this.destMap) this.currentDestName = this.destMap[dir];
-
             this.updateDirectionUI();
             this.fetchBusData();
         }
@@ -1093,8 +1122,10 @@
     }
     function initDarkMode() {
         const savedMode = localStorage.getItem('darkMode');
+        const toggle = document.getElementById('dm-toggle');
         if (savedMode === 'enabled' || (!savedMode && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.body.classList.add('dark-mode'); document.getElementById('dm-toggle').checked = true;
+            document.body.classList.add('dark-mode'); 
+            if(toggle) toggle.checked = true;
         }
     }
 </script>
