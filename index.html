@@ -21,6 +21,7 @@
             --kmb-red: #E3001B;
             --accent: #007AFF;
             --separator: #E5E5EA;
+            --sidebar-width: 280px;
         }
 
         body.dark-mode {
@@ -41,62 +42,56 @@
             color: var(--text-main);
             height: 100dvh; display: flex; flex-direction: column;
             transition: background-color 0.3s, color 0.3s;
+            overflow: hidden;
         }
 
-        .container { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 600px; margin: 0 auto; overflow: hidden; position: relative; }
+        .container { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 600px; margin: 0 auto; overflow: hidden; position: relative; z-index: 1; }
 
-        /* 頂部搜尋區 */
+        /* --- 頂部導航區 --- */
         .search-area {
             padding: 12px 16px;
             background: var(--bg-color);
-            display: flex; gap: 10px;
-            z-index: 200; /* 提高層級給建議選單用 */
+            display: flex; gap: 8px;
+            z-index: 200;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+            align-items: center;
         }
 
-        .search-wrapper {
-            position: relative;
-            flex: 1;
+        .menu-btn {
+            font-size: 1.5rem; padding: 4px 8px; cursor: pointer; color: var(--text-main);
         }
+
+        .search-wrapper { position: relative; flex: 1; }
 
         .search-input {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 12px;
-            border: none;
-            background: var(--card-bg);
-            color: var(--text-main);
-            font-size: 1.1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            outline: none;
+            width: 100%; padding: 10px 32px 10px 14px;
+            border-radius: 12px; border: none;
+            background: var(--card-bg); color: var(--text-main); font-size: 1.1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); outline: none;
         }
         
-        /* 建議選單樣式 */
+        .clear-input-btn {
+            position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+            width: 20px; height: 20px; border-radius: 50%;
+            background: rgba(142, 142, 147, 0.3); color: white;
+            font-size: 12px; display: none;
+            align-items: center; justify-content: center; cursor: pointer;
+        }
+        .clear-input-btn:active { background: rgba(142, 142, 147, 0.8); }
+
         .suggestions-list {
-            position: absolute;
-            top: 110%; left: 0; right: 0;
-            background: var(--card-bg);
-            border-radius: 12px;
+            position: absolute; top: 110%; left: 0; right: 0;
+            background: var(--card-bg); border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            max-height: 0;
-            overflow-y: auto;
-            overflow-x: hidden;
-            transition: max-height 0.2s ease-out;
-            z-index: 1000;
+            max-height: 0; overflow-y: auto; overflow-x: hidden;
+            transition: max-height 0.2s ease-out; z-index: 1000;
         }
-        .suggestions-list.show {
-            max-height: 300px;
-            border: 1px solid rgba(0,0,0,0.05);
-        }
+        .suggestions-list.show { max-height: 300px; border: 1px solid rgba(0,0,0,0.05); }
 
         .suggestion-item {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--separator);
-            font-size: 1.05rem;
-            color: var(--text-main);
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 12px 16px; border-bottom: 1px solid var(--separator);
+            font-size: 1.05rem; color: var(--text-main); cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
         }
         .suggestion-item:active { background: rgba(0,0,0,0.05); }
         .suggestion-item:last-child { border-bottom: none; }
@@ -105,47 +100,73 @@
         .sug-desc { font-size: 0.8rem; color: var(--text-sub); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
 
         .search-btn {
-            padding: 0 20px;
-            background: var(--kmb-red);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(227, 0, 27, 0.3);
-            transition: opacity 0.2s;
+            padding: 0 16px; background: var(--kmb-red); color: white;
+            border: none; border-radius: 12px; font-weight: 600; font-size: 1rem;
+            cursor: pointer; box-shadow: 0 2px 8px rgba(227, 0, 27, 0.3);
+            transition: opacity 0.2s; white-space: nowrap; height: 42px;
         }
         .search-btn:active { transform: scale(0.96); opacity: 0.9; }
         .search-btn:disabled { background: var(--text-sub); cursor: not-allowed; box-shadow: none; }
 
-        /* 內容區 */
-        .content-scroll {
-            flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px 16px;
+        .clear-all-btn {
+            width: 42px; height: 42px; background: #8E8E93; color: white;
+            border: none; border-radius: 12px; font-size: 1.2rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: opacity 0.2s;
         }
+        .clear-all-btn:active { opacity: 0.8; transform: scale(0.96); }
 
-        /* 卡片樣式 */
+        .content-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px 16px; scroll-behavior: smooth; }
+
+        /* --- 卡片樣式 --- */
         .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            overflow: hidden;
-            border: 1px solid rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            background: var(--card-bg); border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.05); margin-bottom: 20px;
+            position: relative;
+            animation: slideIn 0.3s ease-out;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card.dragging {
+            opacity: 0.5; background: #f8f8f8; box-shadow: 0 10px 20px rgba(0,0,0,0.2); z-index: 100;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .card-header {
             background: linear-gradient(135deg, #E3001B, #C20017);
-            padding: 12px 16px;
-            color: white;
+            padding: 12px 16px; color: white;
             display: flex; flex-direction: column; gap: 8px;
+            position: relative; padding-left: 40px;
         }
 
-        .header-top { display: flex; align-items: center; justify-content: space-between; }
+        .drag-handle {
+            position: absolute; top: 12px; left: 10px; width: 24px; height: 24px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; color: rgba(255, 255, 255, 0.6); cursor: grab; z-index: 15;
+            touch-action: none;
+        }
+        
+        .card-actions {
+            position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; z-index: 10;
+        }
+        
+        .close-card-btn {
+            position: absolute; top: 10px; right: 10px;
+            width: 28px; height: 28px;
+            background: rgba(0, 0, 0, 0.2); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: white; font-weight: bold; font-size: 14px;
+            backdrop-filter: blur(4px); transition: background 0.2s; z-index: 10;
+        }
+        .close-card-btn:active { background: rgba(0, 0, 0, 0.4); }
+
+        .header-top { display: flex; align-items: center; padding-right: 40px; }
         .icon { font-size: 1.4rem; margin-right: 8px; }
         .card-title { font-size: 1.3rem; font-weight: 800; }
         
-        /* 方向切換按鈕 */
         .direction-switch {
             display: flex; background: rgba(0, 0, 0, 0.2);
             padding: 3px; border-radius: 8px; margin-top: 4px;
@@ -158,221 +179,579 @@
             cursor: pointer; transition: all 0.2s; font-weight: 500;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        
         .dir-opt.active {
-            background: white; color: var(--kmb-red);
-            font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            background: white; color: var(--kmb-red); font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
-        /* 列表樣式 */
-        .card-content { padding: 4px 16px 16px; min-height: 150px; }
+        .card-content { padding: 4px 16px 16px; min-height: 50px; }
+
         .schedule-item {
             display: flex; justify-content: space-between; align-items: center;
             padding: 14px 0; border-bottom: 1px dashed var(--separator);
-            cursor: pointer;
-            transition: background-color 0.1s;
+            cursor: pointer; overflow: hidden;
+            max-height: 100px; opacity: 1;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.3s ease-in-out, padding 0.4s ease, margin 0.4s ease, border-bottom-width 0.4s ease;
         }
-        .schedule-item:active {
-            background-color: rgba(0,0,0,0.03);
-        }
+        .schedule-item:active { background-color: rgba(0,0,0,0.03); }
         .schedule-item:last-child { border-bottom: none; }
-
-        .stop-info {
-            flex: 1;
-            display: flex;
-            align-items: center; /* 確保垂直置中 */
-            overflow: hidden;
-            padding-right: 10px;
+        .schedule-item.no-border { border-bottom: none !important; }
+        .schedule-item.hidden-row {
+            max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; margin: 0; border-bottom-width: 0; pointer-events: none;
         }
 
+        .stop-info { flex: 1; display: flex; align-items: center; overflow: hidden; padding-right: 10px; }
         .dest-name { font-size: 1.05rem; font-weight: 600; color: var(--text-main); }
-        
         .dest-seq { 
-            color: var(--text-sub); 
-            font-size: 0.8rem; 
-            margin-right: 10px; 
-            font-weight: 400; 
-            display: inline-block; 
-            width: 30px; /* 固定寬度，防止數字變圖標時跳動 */
-            text-align: center;
-            cursor: pointer;
-            flex-shrink: 0;
-            user-select: none;
+            color: var(--text-sub); font-size: 0.8rem; margin-right: 10px; font-weight: 400; 
+            display: inline-block; width: 30px; text-align: center;
+            cursor: pointer; flex-shrink: 0; user-select: none; transition: transform 0.2s; 
         }
-        
         .eta-time { font-size: 0.85rem; color: var(--text-sub); display: block; text-align: right; margin-bottom: 2px;}
         .eta-minutes {
             font-size: 1rem; color: #34C759; font-weight: 700;
             background: #E8F5E9; padding: 4px 8px; border-radius: 6px;
-            display: inline-block; min-width: 45px; text-align: center;
-            transition: all 0.2s;
+            display: inline-block; min-width: 45px; text-align: center; transition: all 0.2s;
         }
         body.dark-mode .eta-minutes { background: rgba(52, 199, 89, 0.2); color: #32D74B; }
         .urgent { color: #FF3B30 !important; background: #FFEBEE !important; }
         body.dark-mode .urgent { background: rgba(255, 69, 58, 0.2) !important; color: #FF453A !important; }
-
         .eta-minutes.show-real-time {
             font-family: "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
-            font-weight: 600;
-            background: var(--bg-color);
-            color: var(--text-main);
+            font-weight: 600; background: var(--bg-color); color: var(--text-main);
             border: 1px solid rgba(0,0,0,0.1);
         }
 
         .status-msg { text-align: center; padding: 40px 20px; color: var(--text-sub); }
         .fading { opacity: 0.5; pointer-events: none; }
-        
-        .mode-toggle { 
-            display: flex; justify-content: flex-end; padding: 10px 16px; 
-            font-size: 0.8rem; color: var(--text-sub); align-items: center;
+        #empty-state { text-align: center; padding: 60px 20px; color: var(--text-sub); display: flex; flex-direction: column; align-items: center; }
+        #empty-state .big-icon { font-size: 4rem; margin-bottom: 20px; opacity: 0.3; }
+
+        /* --- 側邊欄 Sidebar --- */
+        .sidebar-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000; opacity: 0; visibility: hidden;
+            transition: all 0.3s; backdrop-filter: blur(2px);
         }
+        .sidebar-overlay.active { opacity: 1; visibility: visible; }
+
+        .sidebar {
+            position: fixed; top: 0; left: -100%; width: 85%; max-width: 320px; height: 100%;
+            background: var(--card-bg); z-index: 1001; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column; box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+        }
+        .sidebar.active { left: 0; }
+
+        .sidebar-header {
+            padding: 20px 16px; border-bottom: 1px solid var(--separator);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .sidebar-title { font-size: 1.2rem; font-weight: 700; color: var(--text-main); }
+        
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px 0; }
+
+        /* 側邊欄設定 */
+        .sidebar-settings {
+            padding: 15px 16px;
+            border-bottom: 1px solid var(--separator);
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.02);
+        }
+        .setting-label { font-size: 1rem; color: var(--text-main); font-weight: 600; }
+        
+        .ios-switch {
+            position: relative; display: inline-block; width: 51px; height: 31px;
+        }
+        .ios-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #E9E9EA; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 27px; width: 27px;
+            left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input:checked + .slider { background-color: #34C759; }
+        input:checked + .slider:before { transform: translateX(20px); }
+        body.dark-mode .slider { background-color: #39393D; }
+
+        .saved-item {
+            padding: 12px 16px; border-bottom: 1px solid var(--separator);
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; background: var(--card-bg); transition: background 0.2s;
+            position: relative;
+        }
+        .saved-item:active { background: rgba(0,0,0,0.05); }
+        .saved-item.dragging { opacity: 0.5; background: #e0e0e0; }
+
+        .saved-drag-handle {
+            color: var(--text-sub); margin-right: 12px; font-size: 1.1rem; cursor: grab;
+            display: none; 
+        }
+        .delete-btn {
+            padding: 8px; color: #FF3B30; opacity: 0.8; transition: opacity 0.2s; z-index: 2;
+            display: none; 
+        }
+
+        .sidebar-content.editing .saved-drag-handle { display: block; }
+        .sidebar-content.editing .delete-btn { display: block; }
+        .sidebar-content.editing .saved-item { padding-left: 10px; } 
+        .sidebar-content.editing .saved-info { pointer-events: auto; }
+
+        .saved-info { flex: 1; pointer-events: none; }
+        .saved-name { font-size: 1rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px;}
+        .saved-detail { font-size: 0.8rem; color: var(--text-sub); margin-top: 2px; }
+        
+        .default-badge {
+            font-size: 0.65rem; color: white; background: #34C759; padding: 2px 6px;
+            border-radius: 4px; font-weight: 700; text-transform: uppercase;
+        }
+
+        .sidebar-footer {
+            padding: 16px; border-top: 1px solid var(--separator);
+            display: flex; gap: 10px;
+        }
+        
+        .save-all-btn {
+            flex: 1; padding: 12px; background: var(--accent); color: white;
+            border: none; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .save-all-btn:active { opacity: 0.9; }
+
+        .edit-mode-btn {
+            width: 48px; height: 48px; flex-shrink: 0;
+            background: #F2F2F7; color: var(--text-main);
+            border: none; border-radius: 12px; font-size: 1.2rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        body.dark-mode .edit-mode-btn { background: #2C2C2E; }
+        .edit-mode-btn.active { background: var(--kmb-red); color: white; }
+
     </style>
 </head>
 <body>
 
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar(false)"></div>
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <span class="sidebar-title">已儲存項目</span>
+        <span onclick="toggleSidebar(false)" style="cursor:pointer; padding:5px; font-size:1.2rem;">✕</span>
+    </div>
+    
+    <div class="sidebar-settings">
+        <span class="setting-label">黑暗模式</span>
+        <label class="ios-switch">
+            <input type="checkbox" id="dm-toggle" onchange="toggleDarkMode()">
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <div class="sidebar-content" id="saved-list-container"></div>
+
+    <div class="sidebar-footer">
+        <button class="save-all-btn" onclick="saveCurrentAsGroup()">＋ 儲存當前版面</button>
+        <button class="edit-mode-btn" id="edit-btn" onclick="toggleEditMode()">✎</button>
+    </div>
+</div>
+
 <div class="container">
-    <!-- 搜尋欄 -->
     <div class="search-area">
+        <div class="menu-btn" onclick="toggleSidebar(true)">☰</div>
         <div class="search-wrapper">
             <input type="text" id="route-input" class="search-input" 
-                   placeholder="輸入路線 (如 900)" value="900" 
+                   placeholder="輸入路線 (如 900)" value="" 
                    autocomplete="off"
                    oninput="handleInput()" 
                    onfocus="handleInput()"
                    onkeypress="if(event.key==='Enter') searchRoute()">
             
-            <!-- 搜尋建議選單 -->
+            <div id="clear-search" class="clear-input-btn" onclick="clearSearch()">✕</div>
             <div id="suggestions" class="suggestions-list"></div>
         </div>
-        <button id="search-btn" class="search-btn" onclick="searchRoute()">查詢</button>
-    </div>
-
-    <!-- 黑暗模式開關 -->
-    <div class="mode-toggle">
-        <span style="margin-right:8px">黑暗模式</span>
-        <input type="checkbox" id="dm-toggle" onchange="toggleDarkMode()">
-    </div>
-
-    <div class="content-scroll">
-        <div class="card">
-            <div class="card-header">
-                <div class="header-top">
-                    <div style="display:flex; align-items:center;">
-                        <span class="icon">🚌</span>
-                        <span class="card-title" id="display-route">九巴 900</span>
-                    </div>
-                    <div style="font-size:0.8rem; opacity:0.8" id="update-time"></div>
-                </div>
-
-                <!-- 方向切換 -->
-                <div class="direction-switch" id="dir-switch-container">
-                    <span id="btn-out" class="dir-opt active" onclick="switchDirection('outbound')">往 載入中...</span>
-                    <span id="btn-in" class="dir-opt" onclick="switchDirection('inbound')">往 載入中...</span>
-                </div>
-            </div>
-
-            <!-- 列表容器 -->
-            <div id="bus-list" class="card-content">
-                <div class="status-msg">點擊「查詢」開始搜尋</div>
-            </div>
-        </div>
         
-        <div style="text-align:center; font-size:0.7rem; color:var(--text-sub); margin-top:20px;">
-            資料來源：DATA.GOV.HK<br>Designed by AI
+        <button id="search-btn" class="search-btn" onclick="searchRoute()">查詢</button>
+        <button class="clear-all-btn" onclick="clearAllCards()" title="清除所有">🗑</button>
+    </div>
+
+    <div class="content-scroll" id="cards-container">
+        <div id="empty-state">
+            <div class="big-icon">🚍</div>
+            <div>請輸入路線號碼開始查詢</div>
         </div>
+    </div>
+        
+    <div style="text-align:center; font-size:0.7rem; color:var(--text-sub); margin-top:10px; padding-bottom: 20px;">
+        資料來源：DATA.GOV.HK<br>Designed by AI
     </div>
 </div>
 
 <script>
-    // --- 狀態變數 ---
-    let currentRoute = '900';
-    let currentDir = 'outbound';
-    
-    // 釘選功能變數
-    let markedSeq = null; // 當前顯示為 📌 的序號 (但未過濾)
-    let filteredSeq = null; // 當前正在過濾顯示的序號
-    let lastRows = []; // 緩存最後一次的數據，以便在不重新 fetch 的情況下重繪
-    
     let kmbStopCache = {};
-    let routeDestinations = { outbound: '去程', inbound: '回程' };
-    let isCircular = false;
-    
-    // --- 路線資料庫 ---
     let allRoutesDB = []; 
-    let validRouteSet = new Set(); 
+    let validRouteSet = new Set();
+    window.cardRegistry = {};
+    let cardCounter = 0;
+    let isEditMode = false;
 
-    // --- 初始化 ---
     document.addEventListener('DOMContentLoaded', () => {
         initDarkMode();
         preloadAllRoutes(); 
-        searchRoute(); 
+        StorageManager.loadAll(); 
         
-        // 點擊外部關閉建議選單
+        const savedList = StorageManager.getList();
+        if (savedList.length > 0) {
+            loadSavedItem(savedList[0].id);
+        }
+
         document.addEventListener('click', (e) => {
             const wrapper = document.querySelector('.search-wrapper');
-            if (!wrapper.contains(e.target)) {
-                hideSuggestions();
+            if (!wrapper.contains(e.target)) { hideSuggestions(); }
+        });
+
+        const container = document.getElementById('cards-container');
+        container.addEventListener('dragover', e => {
+            e.preventDefault(); 
+            if (!document.querySelector('.card.dragging')) return;
+            const afterElement = getDragAfterElement(container, e.clientY, '.card');
+            const draggable = document.querySelector('.card.dragging');
+            if (draggable) {
+                if (afterElement == null) container.appendChild(draggable);
+                else container.insertBefore(draggable, afterElement);
+            }
+        });
+
+        const sidebarList = document.getElementById('saved-list-container');
+        sidebarList.addEventListener('dragover', e => {
+            e.preventDefault();
+            if (!isEditMode) return;
+            if (!document.querySelector('.saved-item.dragging')) return;
+
+            const afterElement = getDragAfterElement(sidebarList, e.clientY, '.saved-item');
+            const draggable = document.querySelector('.saved-item.dragging');
+            if (draggable) {
+                if (afterElement == null) sidebarList.appendChild(draggable);
+                else sidebarList.insertBefore(draggable, afterElement);
             }
         });
     });
 
-    // --- 預載所有路線 ---
-    async function preloadAllRoutes() {
-        try {
-            const res = await fetch('https://data.etabus.gov.hk/v1/transport/kmb/route/');
-            const json = await res.json();
+    // ==========================================================
+    //  Storage Manager (with Temp List for Edit Mode)
+    // ==========================================================
+    const StorageManager = {
+        key: 'kmb_saved_list',
+        tempList: null, // 暫存列表
+        
+        getList: () => {
+            if (isEditMode && StorageManager.tempList !== null) {
+                return StorageManager.tempList;
+            }
+            return JSON.parse(localStorage.getItem(StorageManager.key) || '[]');
+        },
+
+        saveItem: (name, cardsData) => {
+            // 新增項目時直接寫入 localStorage (不走 temp)
+            let list = JSON.parse(localStorage.getItem(StorageManager.key) || '[]');
+            list.push({ id: Date.now(), name: name, data: cardsData });
+            localStorage.setItem(StorageManager.key, JSON.stringify(list));
             
-            const routeMap = new Map();
-            if (json.data) {
-                json.data.forEach(r => {
-                    if (!routeMap.has(r.route)) {
-                        routeMap.set(r.route, {
-                            route: r.route,
-                            orig: r.orig_tc,
-                            dest: r.dest_tc
-                        });
+            // 如果在編輯模式下新增，需要更新 temp 避免衝突，但簡單起見，我們假設新增會直接更新畫面
+            if (isEditMode) {
+                 StorageManager.tempList = list;
+            }
+            StorageManager.renderList();
+        },
+
+        // 刪除 (操作 Temp 或 Real)
+        deleteItem: (id) => {
+            if (isEditMode) {
+                StorageManager.tempList = StorageManager.tempList.filter(item => item.id !== id);
+            } else {
+                let list = StorageManager.getList();
+                list = list.filter(item => item.id !== id);
+                localStorage.setItem(StorageManager.key, JSON.stringify(list));
+            }
+            StorageManager.renderList();
+        },
+        
+        renameItem: (id) => {
+            if (!isEditMode) return;
+            const item = StorageManager.tempList.find(x => x.id === id);
+            if (!item) return;
+            
+            const newName = prompt("請輸入新名稱:", item.name);
+            if (newName && newName.trim() !== "") {
+                item.name = newName.trim();
+                StorageManager.renderList();
+            }
+        },
+
+        // 更新順序 (更新到 Temp)
+        updateOrderFromDOM: () => {
+            if (!isEditMode) return;
+            
+            const container = document.getElementById('saved-list-container');
+            const items = container.querySelectorAll('.saved-item');
+            const oldList = StorageManager.tempList;
+            const newList = [];
+
+            items.forEach(el => {
+                const id = parseInt(el.getAttribute('data-id'));
+                const data = oldList.find(x => x.id === id);
+                if (data) newList.push(data);
+            });
+            StorageManager.tempList = newList;
+            StorageManager.renderList(); 
+        },
+
+        // 正式提交 Temp 到 LocalStorage
+        commitChanges: () => {
+            if (StorageManager.tempList !== null) {
+                localStorage.setItem(StorageManager.key, JSON.stringify(StorageManager.tempList));
+                StorageManager.tempList = null;
+            }
+        },
+
+        // 捨棄 Temp (還原)
+        discardChanges: () => {
+            StorageManager.tempList = null;
+        },
+
+        // 初始化 Temp
+        initTemp: () => {
+             StorageManager.tempList = JSON.parse(localStorage.getItem(StorageManager.key) || '[]');
+        },
+
+        loadAll: () => {
+            StorageManager.renderList();
+        },
+
+        renderList: () => {
+            const list = StorageManager.getList();
+            const container = document.getElementById('saved-list-container');
+            
+            if (list.length === 0) {
+                container.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-sub);">暫無儲存項目</div>';
+                return;
+            }
+
+            container.innerHTML = list.map((item, index) => {
+                const isDefault = index === 0;
+                let desc = "";
+                if (item.data.length > 1) {
+                    desc = `${item.data.length} 個路線組合`;
+                } else {
+                    const d = item.data[0];
+                    if (d.destName) {
+                        desc = `${d.route} 往 ${d.destName}`;
+                    } else {
+                        desc = `${d.route} ${d.dir==='outbound'?'去程':'回程'}`;
                     }
-                    validRouteSet.add(r.route);
+                }
+
+                return `
+                    <div class="saved-item" draggable="${isEditMode}" data-id="${item.id}" onclick="onSavedItemClick(${item.id})">
+                        <div class="saved-drag-handle">≡</div>
+                        <div class="saved-info">
+                            <div class="saved-name">
+                                ${item.name}
+                                ${isDefault ? '<span class="default-badge">預設</span>' : ''}
+                            </div>
+                            <div class="saved-detail">${desc}</div>
+                        </div>
+                        <div class="delete-btn" onclick="deleteSaved(event, ${item.id})">🗑</div>
+                    </div>
+                `;
+            }).join('');
+
+            if (isEditMode) container.classList.add('editing');
+            else container.classList.remove('editing');
+
+            StorageManager.bindDragEvents();
+        },
+
+        bindDragEvents: () => {
+            const items = document.querySelectorAll('.saved-item');
+            items.forEach(item => {
+                item.addEventListener('dragstart', () => item.classList.add('dragging'));
+                item.addEventListener('dragend', () => {
+                    item.classList.remove('dragging');
+                    if(isEditMode) StorageManager.updateOrderFromDOM(); 
                 });
+                
+                const handle = item.querySelector('.saved-drag-handle');
+                handle.addEventListener('touchstart', (e) => { 
+                    item.classList.add('dragging'); 
+                }, {passive: true});
+                handle.addEventListener('touchend', () => {
+                     item.classList.remove('dragging');
+                     if(isEditMode) StorageManager.updateOrderFromDOM();
+                });
+                handle.addEventListener('touchmove', (e) => {
+                    const container = document.getElementById('saved-list-container');
+                    const touchLocation = e.targetTouches[0];
+                    const afterElement = getDragAfterElement(container, touchLocation.clientY, '.saved-item');
+                    const draggable = document.querySelector('.saved-item.dragging');
+                    if (draggable) {
+                        if (afterElement == null) container.appendChild(draggable);
+                        else container.insertBefore(draggable, afterElement);
+                    }
+                    e.preventDefault();
+                }, {passive: false});
+            });
+        }
+    };
+
+    // ==========================================================
+    //  UI Actions
+    // ==========================================================
+    function toggleSidebar(show) {
+        const sb = document.getElementById('sidebar');
+        const ov = document.getElementById('overlay');
+        
+        if (show) { 
+            sb.classList.add('active'); ov.classList.add('active'); 
+        } else { 
+            // 關閉側邊欄時，若在編輯模式，則還原 (不儲存)
+            if (isEditMode) {
+                // 自動退出編輯模式並還原
+                isEditMode = false;
+                StorageManager.discardChanges();
+                
+                // UI 還原
+                const btn = document.getElementById('edit-btn');
+                btn.innerHTML = '✎'; 
+                btn.classList.remove('active');
+                StorageManager.renderList();
             }
             
-            allRoutesDB = Array.from(routeMap.values()).sort((a, b) => {
-                return a.route.localeCompare(b.route, undefined, {numeric: true, sensitivity: 'base'});
-            });
-            
-        } catch (e) {
-            console.error("無法下載路線列表", e);
+            sb.classList.remove('active'); ov.classList.remove('active'); 
         }
     }
 
-    // --- 處理輸入與建議 ---
+    function toggleEditMode() {
+        isEditMode = !isEditMode;
+        const btn = document.getElementById('edit-btn');
+        
+        if (isEditMode) {
+            // 進入編輯模式：初始化 Temp
+            StorageManager.initTemp();
+            btn.innerHTML = '💾'; 
+            btn.classList.add('active');
+        } else {
+            // 退出編輯模式 (按下儲存)：寫入 DB
+            StorageManager.commitChanges();
+            btn.innerHTML = '✎'; 
+            btn.classList.remove('active');
+        }
+        
+        StorageManager.renderList();
+    }
+
+    function onSavedItemClick(id) {
+        if (isEditMode) {
+            StorageManager.renameItem(id);
+        } else {
+            loadSavedItem(id);
+        }
+    }
+
+    function saveCurrentAsGroup() {
+        const cards = document.querySelectorAll('.card');
+        if (cards.length === 0) { alert('目前沒有任何卡片可儲存'); return; }
+        
+        let defaultName = "";
+        if (cards.length > 0) {
+            const firstCard = window.cardRegistry[cards[0].id];
+            defaultName = `九巴 ${firstCard.route}`;
+            if (firstCard.currentDestName) {
+                defaultName += ` 往 ${firstCard.currentDestName}`;
+            }
+        }
+        if (cards.length > 1) defaultName = '我的通勤組合';
+
+        const name = prompt('請輸入名稱：', defaultName);
+        if (!name) return;
+
+        const data = [];
+        cards.forEach(card => {
+            const obj = window.cardRegistry[card.id];
+            if (obj) {
+                data.push({
+                    route: obj.route,
+                    dir: obj.dir,
+                    destName: obj.currentDestName, 
+                    filteredSeq: obj.filteredSeq,
+                    markedSeq: obj.markedSeq
+                });
+            }
+        });
+
+        StorageManager.saveItem(name, data);
+    }
+
+    function loadSavedItem(id) {
+        const list = StorageManager.getList();
+        const item = list.find(x => x.id === id);
+        if (!item) return;
+
+        clearAllCards(false);
+        
+        item.data.forEach(d => {
+            createCard(d.route, d);
+        });
+        
+        toggleSidebar(false);
+    }
+
+    function deleteSaved(e, id) {
+        e.stopPropagation();
+        if(confirm('確定要刪除嗎？')) {
+            StorageManager.deleteItem(id);
+        }
+    }
+
+    function clearAllCards(showEmpty = true) {
+        const container = document.getElementById('cards-container');
+        container.innerHTML = '';
+        window.cardRegistry = {};
+        
+        if (showEmpty) {
+            const emptyState = document.createElement('div');
+            emptyState.id = 'empty-state';
+            emptyState.innerHTML = '<div class="big-icon">🚍</div><div>請輸入路線號碼開始查詢</div>';
+            container.appendChild(emptyState);
+        }
+    }
+
+    // ==========================================================
+    //  Input Logic
+    // ==========================================================
     function handleInput() {
         const input = document.getElementById('route-input');
+        const clearBtn = document.getElementById('clear-search');
         const val = input.value.trim().toUpperCase();
+        
+        if (input.value.length > 0) {
+            clearBtn.style.display = 'flex';
+        } else {
+            clearBtn.style.display = 'none';
+        }
+
         const btn = document.getElementById('search-btn');
         const list = document.getElementById('suggestions');
         
         if (val && validRouteSet.size > 0 && !validRouteSet.has(val)) {
-            btn.disabled = true;
-            btn.innerText = '無此路線';
-            btn.style.background = 'var(--text-sub)';
+            btn.disabled = true; btn.innerText = '無此路線'; btn.style.background = 'var(--text-sub)';
         } else {
-            btn.disabled = false;
-            btn.innerText = '查詢';
-            btn.style.background = 'var(--kmb-red)';
+            btn.disabled = false; btn.innerText = '查詢'; btn.style.background = 'var(--kmb-red)';
         }
 
-        if (!val || allRoutesDB.length === 0) {
-            hideSuggestions();
-            return;
-        }
-
+        if (!val || allRoutesDB.length === 0) { hideSuggestions(); return; }
         const matches = allRoutesDB.filter(r => r.route.startsWith(val)).slice(0, 50); 
-        
-        if (matches.length === 0) {
-            hideSuggestions();
-            return;
-        }
+        if (matches.length === 0) { hideSuggestions(); return; }
 
         list.innerHTML = matches.map(r => `
             <div class="suggestion-item" onmousedown="selectSuggestion('${r.route}')">
@@ -380,311 +759,344 @@
                 <span class="sug-desc">${r.orig} ⇄ ${r.dest}</span>
             </div>
         `).join('');
-        
         list.classList.add('show');
     }
 
-    function hideSuggestions() {
-        document.getElementById('suggestions').classList.remove('show');
+    function clearSearch() {
+        const input = document.getElementById('route-input');
+        input.value = '';
+        handleInput(); 
+        input.focus();
     }
 
-    function selectSuggestion(route) {
-        document.getElementById('route-input').value = route;
-        hideSuggestions();
+    function hideSuggestions() { document.getElementById('suggestions').classList.remove('show'); }
+    function selectSuggestion(route) { 
+        document.getElementById('route-input').value = route; 
+        handleInput(); 
+        hideSuggestions(); 
         searchRoute(); 
     }
 
-    // --- 核心功能：搜尋路線 ---
-    async function searchRoute() {
+    function searchRoute() {
         const inputEl = document.getElementById('route-input');
         const input = inputEl.value.trim().toUpperCase();
-        
         if (!input) return;
-
-        if (validRouteSet.size > 0 && !validRouteSet.has(input)) {
-            alert('找不到此路線號碼，請重新輸入。');
-            inputEl.focus();
-            return;
+        if (validRouteSet.size > 0 && !validRouteSet.has(input)) { alert('找不到此路線號碼'); inputEl.focus(); return; }
+        inputEl.blur(); hideSuggestions(); 
+        
+        if(document.getElementById('empty-state')) {
+             document.getElementById('cards-container').innerHTML = '';
         }
-
-        inputEl.blur(); 
-        hideSuggestions(); 
-        
-        // 重置狀態與釘選
-        currentRoute = input;
-        currentDir = 'outbound'; 
-        markedSeq = null; 
-        filteredSeq = null;
-
-        document.getElementById('display-route').innerText = `九巴 ${currentRoute}`;
-        document.getElementById('bus-list').innerHTML = '<div class="status-msg">正在分析路線資料...</div>';
-        
-        const btn = document.getElementById('search-btn');
-        btn.innerText = '查詢';
-        btn.disabled = false;
-        btn.style.background = 'var(--kmb-red)';
-        
-        document.getElementById('btn-out').className = 'dir-opt active';
-        document.getElementById('btn-in').className = 'dir-opt';
-        document.getElementById('btn-out').innerText = '載入中...';
-        document.getElementById('btn-in').innerText = '載入中...';
-        document.getElementById('dir-switch-container').style.display = 'flex';
-
-        try {
-            await fetchRouteBoundaries(currentRoute);
-            await fetchBusData();
-        } catch (e) {
-            console.error(e);
-            document.getElementById('bus-list').innerHTML = '<div class="status-msg error">找不到此路線或資料錯誤</div>';
-            document.getElementById('btn-out').innerText = '未知';
-            document.getElementById('btn-in').innerText = '未知';
-        }
+        createCard(input);
     }
+    
+    // ==========================================================
+    //  BusRouteCard Class
+    // ==========================================================
+    class BusRouteCard {
+        constructor(route, containerId, savedState = null) {
+            this.id = containerId; 
+            this.route = route;
+            this.dir = savedState ? savedState.dir : 'outbound';
+            this.markedSeq = savedState ? savedState.markedSeq : null; 
+            this.filteredSeq = savedState ? savedState.filteredSeq : null; 
+            this.currentDestName = savedState ? savedState.destName : ''; 
 
-    // --- 獲取路線終點 ---
-    async function fetchRouteBoundaries(route) {
-        const [outStops, inStops] = await Promise.all([
-            getRouteStops(route, 'outbound'),
-            getRouteStops(route, 'inbound')
-        ]);
-
-        if (outStops && outStops.length > 0) {
-            const lastStopId = outStops[outStops.length - 1].stop;
-            const name = await getStopName(lastStopId);
-            routeDestinations.outbound = name;
-            document.getElementById('btn-out').innerText = `往 ${name}`;
-        } else {
-            routeDestinations.outbound = '去程';
-            document.getElementById('btn-out').innerText = '去程 (無資料)';
+            this.lastRows = []; 
+            this.element = null; 
         }
 
-        if (inStops && inStops.length > 0) {
-            const lastStopId = inStops[inStops.length - 1].stop;
-            const name = await getStopName(lastStopId);
-            routeDestinations.inbound = name;
-            document.getElementById('btn-in').innerText = `往 ${name}`;
-            document.getElementById('btn-in').style.display = 'block'; 
-            isCircular = false;
-        } else {
-            routeDestinations.inbound = null;
-            document.getElementById('btn-in').style.display = 'none'; 
-            isCircular = true;
-            document.getElementById('btn-out').innerText += ' (循環線)';
-        }
-    }
+        init() {
+            const emptyState = document.getElementById('empty-state');
+            if (emptyState) emptyState.remove();
 
-    // --- 切換方向 ---
-    function switchDirection(dir) {
-        if (currentDir === dir) return;
-        currentDir = dir;
-        // 切換方向時重置釘選
-        markedSeq = null;
-        filteredSeq = null;
-        
-        document.getElementById('btn-out').classList.toggle('active', dir === 'outbound');
-        document.getElementById('btn-in').classList.toggle('active', dir === 'inbound');
-        
-        fetchBusData();
-    }
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.id = this.id;
+            div.setAttribute('draggable', 'true');
 
-    // --- 下載並顯示班次 ---
-    async function fetchBusData() {
-        const listEl = document.getElementById('bus-list');
-        listEl.classList.add('fading'); 
-        document.getElementById('update-time').innerText = '更新中...';
+            div.innerHTML = `
+                <div class="card-header">
+                    <div class="drag-handle">≡</div>
+                    <div class="close-card-btn" onclick="window.cardRegistry['${this.id}'].destroy()">✕</div>
+                    
+                    <div class="header-top">
+                        <div style="display:flex; align-items:center;">
+                            <span class="icon">🚌</span>
+                            <span class="card-title">九巴 ${this.route}</span>
+                        </div>
+                        <div style="font-size:0.8rem; opacity:0.8" class="update-time"></div>
+                    </div>
 
-        try {
-            const routeStops = await getRouteStops(currentRoute, currentDir);
+                    <div class="direction-switch" style="display:flex;">
+                        <span class="dir-opt btn-out active" onclick="window.cardRegistry['${this.id}'].switchDirection('outbound')">往 載入中...</span>
+                        <span class="dir-opt btn-in" onclick="window.cardRegistry['${this.id}'].switchDirection('inbound')">往 載入中...</span>
+                    </div>
+                </div>
+
+                <div class="card-content">
+                    <div class="status-msg">正在分析路線資料...</div>
+                </div>
+            `;
             
-            if (!routeStops || routeStops.length === 0) {
-                listEl.innerHTML = '<div class="status-msg">此方向無車站資料</div>';
+            const container = document.getElementById('cards-container');
+            container.appendChild(div);
+            this.element = div;
+            
+            setTimeout(() => { div.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+            
+            this.initDragEvents(div);
+            this.updateDirectionUI(); 
+
+            this.fetchRouteBoundaries().then(() => {
+                this.fetchBusData();
+            });
+        }
+
+        updateDirectionUI() {
+            const btnOut = this.element.querySelector('.btn-out');
+            const btnIn = this.element.querySelector('.btn-in');
+            btnOut.classList.toggle('active', this.dir === 'outbound');
+            btnIn.classList.toggle('active', this.dir === 'inbound');
+        }
+
+        initDragEvents(cardEl) {
+            const handle = cardEl.querySelector('.drag-handle');
+            const container = document.getElementById('cards-container');
+            
+            cardEl.addEventListener('dragstart', () => { cardEl.classList.add('dragging'); });
+            cardEl.addEventListener('dragend', () => { cardEl.classList.remove('dragging'); });
+            
+            handle.addEventListener('touchstart', (e) => { cardEl.classList.add('dragging'); }, { passive: true });
+            handle.addEventListener('touchend', () => { cardEl.classList.remove('dragging'); });
+            handle.addEventListener('touchmove', (e) => {
+                const touchLocation = e.targetTouches[0];
+                const afterElement = getDragAfterElement(container, touchLocation.clientY, '.card');
+                if (afterElement == null) container.appendChild(cardEl);
+                else container.insertBefore(cardEl, afterElement);
+                e.preventDefault();
+            }, { passive: false });
+        }
+
+        destroy() {
+            if (this.element) {
+                this.element.style.transition = 'opacity 0.3s, transform 0.3s';
+                this.element.style.opacity = '0';
+                this.element.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    this.element.remove();
+                    delete window.cardRegistry[this.id];
+                    if (Object.keys(window.cardRegistry).length === 0) {
+                        clearAllCards(true);
+                    }
+                }, 300);
+            }
+        }
+
+        async fetchRouteBoundaries() {
+            const [outStops, inStops] = await Promise.all([
+                getRouteStops(this.route, 'outbound'), 
+                getRouteStops(this.route, 'inbound')
+            ]);
+            
+            let outName = '去程';
+            let inName = '回程';
+
+            const btnOut = this.element.querySelector('.btn-out');
+            const btnIn = this.element.querySelector('.btn-in');
+
+            if (outStops && outStops.length > 0) {
+                const name = await getStopName(outStops[outStops.length - 1].stop);
+                btnOut.innerText = `往 ${name}`;
+                outName = name;
+            } else { btnOut.innerText = '去程 (無資料)'; }
+
+            if (inStops && inStops.length > 0) {
+                const name = await getStopName(inStops[inStops.length - 1].stop);
+                btnIn.innerText = `往 ${name}`;
+                btnIn.style.display = 'block'; 
+                inName = name;
+            } else {
+                btnIn.style.display = 'none'; 
+                btnOut.innerText += ' (循環線)';
+            }
+            
+            this.destMap = { outbound: outName, inbound: inName };
+            this.currentDestName = this.destMap[this.dir];
+        }
+
+        switchDirection(dir) {
+            if (this.dir === dir) return;
+            this.dir = dir;
+            this.markedSeq = null; this.filteredSeq = null; 
+            
+            if(this.destMap) this.currentDestName = this.destMap[dir];
+
+            this.updateDirectionUI();
+            this.fetchBusData();
+        }
+
+        async fetchBusData() {
+            const listEl = this.element.querySelector('.card-content');
+            const timeEl = this.element.querySelector('.update-time');
+            if(listEl.innerHTML.includes('暫無資料') || listEl.innerHTML.includes('正在分析')) {
+                listEl.classList.add('fading');
+            }
+            timeEl.innerText = '更新中...';
+            try {
+                const routeStops = await getRouteStops(this.route, this.dir);
+                if (!routeStops || routeStops.length === 0) {
+                    listEl.innerHTML = '<div class="status-msg">此方向無車站資料</div>';
+                    listEl.classList.remove('fading'); return;
+                }
+                const etaRes = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/route-eta/${this.route}/1`);
+                const etaData = await etaRes.json();
+                const allEtas = etaData.data || [];
+                const rows = await Promise.all(routeStops.map(async (stopInfo) => {
+                    const name = await getStopName(stopInfo.stop);
+                    const apiDir = this.dir === 'outbound' ? 'O' : 'I';
+                    const stopEtas = allEtas.filter(e => 
+                        e.seq === parseInt(stopInfo.seq) && e.dir === apiDir && e.eta != null
+                    ).sort((a, b) => new Date(a.eta) - new Date(b.eta));
+                    return { seq: parseInt(stopInfo.seq), name: name, etas: stopEtas };
+                }));
+                this.lastRows = rows; 
+                this.renderList(this.lastRows); 
+                this.applyVisualState();   
+                timeEl.innerText = '更新於 ' + new Date().toLocaleTimeString('zh-HK', {hour:'2-digit', minute:'2-digit'});
+            } catch (e) {
+                console.error(e);
+                listEl.innerHTML = '<div class="status-msg error">資料載入失敗</div>';
+            } finally {
                 listEl.classList.remove('fading');
+            }
+        }
+
+        renderList(rows) {
+            const listEl = this.element.querySelector('.card-content');
+            if (rows.length === 0) {
+                listEl.innerHTML = '<div class="status-msg">暫無資料</div>';
                 return;
             }
-
-            const etaRes = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/route-eta/${currentRoute}/1`);
-            const etaData = await etaRes.json();
-            const allEtas = etaData.data || [];
-
-            const rows = await Promise.all(routeStops.map(async (stopInfo) => {
-                const name = await getStopName(stopInfo.stop);
-                const apiDir = currentDir === 'outbound' ? 'O' : 'I';
-                
-                const stopEtas = allEtas.filter(e => 
-                    e.seq === parseInt(stopInfo.seq) && 
-                    e.dir === apiDir && 
-                    e.eta != null
-                ).sort((a, b) => new Date(a.eta) - new Date(b.eta));
-                
-                return { 
-                    seq: parseInt(stopInfo.seq), 
-                    name: name, 
-                    etas: stopEtas 
-                };
-            }));
-
-            // 儲存資料以便在不重新請求API的情況下過濾
-            lastRows = rows; 
-            renderList(lastRows);
-            document.getElementById('update-time').innerText = '更新於 ' + new Date().toLocaleTimeString('zh-HK', {hour:'2-digit', minute:'2-digit'});
-
-        } catch (e) {
-            console.error(e);
-            listEl.innerHTML = '<div class="status-msg error">資料載入失敗，請重試</div>';
-        } finally {
-            listEl.classList.remove('fading');
-        }
-    }
-
-    // --- 渲染 HTML (包含過濾與釘選邏輯) ---
-    function renderList(rows) {
-        const listEl = document.getElementById('bus-list');
-        
-        // 1. 如果有過濾，只保留該筆資料
-        let displayRows = rows;
-        if (filteredSeq !== null) {
-            displayRows = rows.filter(r => r.seq === filteredSeq);
+            const html = rows.sort((a, b) => a.seq - b.seq).map(row => {
+                let timeHtml = '';
+                if (row.etas.length === 0) {
+                    timeHtml = '<span style="color:var(--text-sub); font-size:0.85rem;">暫無班次</span>';
+                } else {
+                    timeHtml = row.etas.slice(0, 3).map(e => {
+                        const mins = getMins(e.eta);
+                        const d = new Date(e.eta);
+                        const timeStr = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+                        const isUrgent = mins === '即將' || mins === '0分' || mins === '1分';
+                        return `<span class="eta-minutes ${isUrgent ? 'urgent' : ''}" data-min="${mins}" data-time="${timeStr}" style="margin-left:4px;">${mins}</span>`;
+                    }).join('');
+                }
+                return `
+                <div class="schedule-item" data-seq="${row.seq}" onclick="window.cardRegistry['${this.id}'].toggleEtas(this)">
+                    <div class="stop-info">
+                        <span class="dest-seq" onclick="window.cardRegistry['${this.id}'].togglePin(event, ${row.seq})">${row.seq}</span>
+                        <span class="dest-name">${row.name}</span>
+                    </div>
+                    <div style="text-align:right; min-width:120px; flex-shrink:0;">
+                        ${timeHtml}
+                    </div>
+                </div>`;
+            }).join('');
+            listEl.innerHTML = html;
         }
 
-        if (displayRows.length === 0 && rows.length === 0) {
-            listEl.innerHTML = '<div class="status-msg">暫無資料</div>';
-            return;
-        }
-
-        const html = displayRows.sort((a, b) => a.seq - b.seq).map(row => {
-            let timeHtml = '';
-            if (row.etas.length === 0) {
-                timeHtml = '<span style="color:var(--text-sub); font-size:0.85rem;">暫無班次</span>';
+        togglePin(e, seq) {
+            e.stopPropagation();
+            if (this.filteredSeq === seq) {
+                this.filteredSeq = null; this.markedSeq = null;
+            } else if (this.markedSeq === seq) {
+                this.filteredSeq = seq;
             } else {
-                timeHtml = row.etas.slice(0, 3).map(e => {
-                    const mins = getMins(e.eta);
-                    const d = new Date(e.eta);
-                    const timeStr = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
-                    const isUrgent = mins === '即將' || mins === '0分' || mins === '1分';
-                    
-                    return `<span class="eta-minutes ${isUrgent ? 'urgent' : ''}" 
-                                  data-min="${mins}" 
-                                  data-time="${timeStr}"
-                                  style="margin-left:4px;">${mins}</span>`;
-                }).join('');
+                this.markedSeq = seq; this.filteredSeq = null;
             }
-            
-            // 決定顯示號碼還是 PIN 圖標
-            // 邏輯：如果該行是被 Mark 的，或者正在被過濾顯示，就顯示 PIN
-            const isMarked = (markedSeq === row.seq);
-            const seqDisplay = isMarked ? '📌' : row.seq;
-
-            return `
-            <div class="schedule-item" onclick="toggleEtas(this)">
-                <div class="stop-info">
-                    <span class="dest-seq" onclick="togglePin(event, ${row.seq})">${seqDisplay}</span>
-                    <span class="dest-name">${row.name}</span>
-                </div>
-                <div style="text-align:right; min-width:120px; flex-shrink:0;">
-                    ${timeHtml}
-                </div>
-            </div>`;
-        }).join('');
-
-        listEl.innerHTML = html;
-    }
-
-    // --- 釘選與過濾邏輯 ---
-    function togglePin(e, seq) {
-        e.stopPropagation(); // 防止觸發整行的時間切換
-
-        // 狀態機邏輯：
-        // 1. 初始 -> 點擊數字 -> 變 PIN (Marked)
-        // 2. 變 PIN -> 點擊 PIN -> 過濾 (Filtered)
-        // 3. 過濾中 -> 點擊 PIN -> 還原 (Reset)
-
-        if (filteredSeq === seq) {
-            // Step 3: 目前正在過濾此站 -> 還原所有
-            filteredSeq = null;
-            markedSeq = null;
-        } else if (markedSeq === seq) {
-            // Step 2: 目前已標記此站 (顯示 PIN) -> 進入過濾模式
-            filteredSeq = seq;
-        } else {
-            // Step 1: 目前無標記或點擊了其他站 -> 標記此站 (變 PIN)，清除其他過濾
-            markedSeq = seq;
-            filteredSeq = null;
+            this.applyVisualState();
         }
-        
-        // 使用緩存的資料重新渲染，無需再次請求 API
-        renderList(lastRows);
-    }
 
-    // --- 切換時間顯示模式 ---
-    function toggleEtas(row) {
-        const spans = row.querySelectorAll('.eta-minutes');
-        if(spans.length === 0) return;
+        applyVisualState() {
+            const items = this.element.querySelectorAll('.schedule-item');
+            items.forEach(item => {
+                const seq = parseInt(item.getAttribute('data-seq'));
+                const seqSpan = item.querySelector('.dest-seq');
+                if (this.filteredSeq !== null && this.filteredSeq !== seq) item.classList.add('hidden-row');
+                else item.classList.remove('hidden-row');
+                
+                if (this.filteredSeq !== null && this.filteredSeq === seq) item.classList.add('no-border');
+                else item.classList.remove('no-border');
 
-        const isShowingTime = row.classList.contains('mode-time');
-
-        if (isShowingTime) {
-            row.classList.remove('mode-time');
-            spans.forEach(span => {
-                span.innerText = span.getAttribute('data-min');
-                span.classList.remove('show-real-time');
+                if (this.markedSeq === seq) {
+                    seqSpan.innerText = '📌';
+                    seqSpan.style.opacity = '1';
+                } else {
+                    seqSpan.innerText = seq;
+                    seqSpan.style.opacity = '';
+                }
             });
-        } else {
-            row.classList.add('mode-time');
-            spans.forEach(span => {
-                span.innerText = span.getAttribute('data-time');
-                span.classList.add('show-real-time');
-            });
+        }
+
+        toggleEtas(row) {
+            const spans = row.querySelectorAll('.eta-minutes');
+            if(spans.length === 0) return;
+            const isShowingTime = row.classList.contains('mode-time');
+            if (isShowingTime) {
+                row.classList.remove('mode-time');
+                spans.forEach(span => { span.innerText = span.getAttribute('data-min'); span.classList.remove('show-real-time'); });
+            } else {
+                row.classList.add('mode-time');
+                spans.forEach(span => { span.innerText = span.getAttribute('data-time'); span.classList.add('show-real-time'); });
+            }
         }
     }
 
-    // --- API Helper ---
-    async function getRouteStops(route, dir) {
+    function getDragAfterElement(container, y, selector) {
+        const draggableElements = [...container.querySelectorAll(`${selector}:not(.dragging)`)];
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
+            else return closest;
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    async function preloadAllRoutes() {
         try {
-            const res = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/route-stop/${route}/${dir}/1`);
-            const data = await res.json();
-            return data.data; 
-        } catch { return []; }
+            const res = await fetch('https://data.etabus.gov.hk/v1/transport/kmb/route/');
+            const json = await res.json();
+            const routeMap = new Map();
+            if (json.data) {
+                json.data.forEach(r => {
+                    if (!routeMap.has(r.route)) routeMap.set(r.route, { route: r.route, orig: r.orig_tc, dest: r.dest_tc });
+                    validRouteSet.add(r.route);
+                });
+            }
+            allRoutesDB = Array.from(routeMap.values()).sort((a, b) => a.route.localeCompare(b.route, undefined, {numeric: true, sensitivity: 'base'}));
+        } catch (e) { console.error(e); }
     }
 
+    async function getRouteStops(route, dir) {
+        try { const res = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/route-stop/${route}/${dir}/1`); const data = await res.json(); return data.data; } catch { return []; }
+    }
     async function getStopName(stopId) {
         if (kmbStopCache[stopId]) return kmbStopCache[stopId];
-        try {
-            const res = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/stop/${stopId}`);
-            const data = await res.json();
-            const name = data.data.name_tc;
-            kmbStopCache[stopId] = name; 
-            return name;
-        } catch { return '未知車站'; }
+        try { const res = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/stop/${stopId}`); const data = await res.json(); kmbStopCache[stopId] = data.data.name_tc; return data.data.name_tc; } catch { return '未知車站'; }
     }
+    const getMins = (iso) => { if (!iso) return '--'; const diff = Math.floor((new Date(iso) - new Date()) / 60000); return diff <= 0 ? '即將' : `${diff}分`; };
 
-    const getMins = (iso) => {
-        if (!iso) return '--';
-        const diff = Math.floor((new Date(iso) - new Date()) / 60000);
-        return diff <= 0 ? '即將' : `${diff}分`;
-    };
-
-    // --- 黑暗模式 ---
     function toggleDarkMode() {
         const isChecked = document.getElementById('dm-toggle').checked;
-        if (isChecked) {
-            document.body.classList.add('dark-mode');
-            localStorage.setItem('darkMode', 'enabled');
-        } else {
-            document.body.classList.remove('dark-mode');
-            localStorage.setItem('darkMode', 'disabled');
-        }
+        if (isChecked) { document.body.classList.add('dark-mode'); localStorage.setItem('darkMode', 'enabled'); }
+        else { document.body.classList.remove('dark-mode'); localStorage.setItem('darkMode', 'disabled'); }
     }
-
     function initDarkMode() {
         const savedMode = localStorage.getItem('darkMode');
-        const toggle = document.getElementById('dm-toggle');
-        
         if (savedMode === 'enabled' || (!savedMode && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.body.classList.add('dark-mode');
-            toggle.checked = true;
+            document.body.classList.add('dark-mode'); document.getElementById('dm-toggle').checked = true;
         }
     }
-
 </script>
 </body>
 </html>
