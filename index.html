@@ -74,7 +74,7 @@
         }
         .suggestions-list {
             position: absolute; top: 110%; left: 0; right: 0; background: var(--card-bg);
-            border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); max-height: 300px;
+            border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); max-height: 50vh; /* 增加顯示高度 */
             overflow-y: auto; z-index: 1000; display: none;
         }
         .suggestions-list.show { display: block; border: 1px solid rgba(0,0,0,0.05); }
@@ -180,7 +180,7 @@
         }
         .pin-icon { display: inline-block; animation: pinDrop 0.4s ease-out; }
 
-        /* 統一的時間膠囊樣式 (Bus & MTR) - 淺色模式下強制綠色/紅色 */
+        /* 統一的時間膠囊樣式 (Bus & MTR) */
         .eta-minutes { 
             font-size: 1rem; 
             color: #34C759; /* Green Text */
@@ -194,25 +194,21 @@
             margin-left: 4px; 
         }
         
-        /* 深色模式下的綠色樣式 */
         body.dark-mode .eta-minutes { 
             background: rgba(52, 199, 89, 0.2); 
             color: #32D74B; 
         }
         
-        /* 緊急/即將到達 (紅色) - 淺色模式 */
         .urgent { 
             color: #FF3B30 !important; 
             background: #FFEBEE !important; 
         }
         
-        /* 緊急/即將到達 (紅色) - 深色模式 */
         body.dark-mode .urgent { 
             background: rgba(255, 69, 58, 0.2) !important; 
             color: #FF453A !important; 
         }
         
-        /* 真實時間顯示樣式 (透明底) */
         .eta-minutes.show-real-time { 
             background: transparent !important; 
             color: var(--text-main) !important; 
@@ -220,7 +216,6 @@
             font-family: "SF Pro Display", sans-serif; 
         }
         
-        /* 暫無班次樣式 */
         .no-schedule { color: var(--text-sub); font-size: 0.85rem; }
 
         .status-msg { text-align: center; padding: 40px 20px; color: var(--text-sub); }
@@ -307,7 +302,7 @@
     <div class="search-area">
         <div class="menu-btn" onclick="toggleSidebar(true)">☰</div>
         <div class="search-wrapper">
-            <input type="text" id="route-input" class="search-input" placeholder="輸入路線 / 港鐵綫" value="" autocomplete="off"
+            <input type="text" id="route-input" class="search-input" placeholder="輸入路線 / 港鐵綫 / 車站" value="" autocomplete="off"
                    oninput="handleInput(this, 'suggestions', 'clear-search')" 
                    onfocus="handleInput(this, 'suggestions', 'clear-search')"
                    onkeypress="if(event.key==='Enter') searchTopItem()">
@@ -321,7 +316,7 @@
         <div id="cards-container">
             <div id="empty-state">
                 <div class="big-icon">🚍</div>
-                <div>請輸入巴士路線或港鐵綫路開始查詢</div>
+                <div>請輸入巴士路線、港鐵綫或車站開始查詢</div>
             </div>
         </div>
         <!-- 底部新增按鈕區域 -->
@@ -329,7 +324,7 @@
             <button id="show-add-btn" class="add-circle-btn" onclick="toggleAddSearch(true)">＋</button>
             <div id="add-search-wrapper">
                 <div class="search-wrapper">
-                    <input type="text" id="add-route-input" class="search-input" placeholder="輸入路線 / 港鐵綫" value="" autocomplete="off"
+                    <input type="text" id="add-route-input" class="search-input" placeholder="輸入路線 / 港鐵綫 / 車站" value="" autocomplete="off"
                            oninput="handleInput(this, 'add-suggestions', 'add-clear-search')" 
                            onfocus="handleInput(this, 'add-suggestions', 'add-clear-search')"
                            onkeypress="if(event.key==='Enter') addItem()">
@@ -387,7 +382,7 @@
         setupDrag('saved-list-container', '.saved-item');
     });
 
-    // --- MTR Data (Strictly Ordered Arrays) ---
+    // --- MTR Data ---
     function buildMtrDb() {
         const MTR_DATA = {
             'AEL': { name: '機場快綫', stations: [
@@ -612,7 +607,7 @@
             if (d.type === 'MTR') {
                 createMtrCard(d.lineCode, d.staCode, d);
             } else if (d.type === 'MTR_LINE') {
-                createMtrLineCard(d.lineCode, d);
+                createMtrLineCard(d.lineCode, d, d.markedSeq);
             } else { // 'BUS' or legacy
                 createCard(d.route, d.co || 'KMB', d);
             }
@@ -620,7 +615,7 @@
         toggleSidebar(false);
     }
     function clearAllCards(showEmpty = true) {
-        document.getElementById('cards-container').innerHTML = showEmpty ? '<div id="empty-state"><div class="big-icon">🚍</div><div>請輸入路線號碼或港鐵綫開始查詢</div></div>' : '';
+        document.getElementById('cards-container').innerHTML = showEmpty ? '<div id="empty-state"><div class="big-icon">🚍</div><div>請輸入巴士路線、港鐵綫或車站開始查詢</div></div>' : '';
         window.cardRegistry = {};
         document.getElementById('add-card-section').style.display = 'none';
     }
@@ -642,8 +637,10 @@
             return;
         }
         
-        const busMatches = allRoutesDB.filter(r => r.route.startsWith(upperVal)).slice(0, 8);
-        const mtrLineMatches = allMtrLines.filter(l => l.lineName.includes(val) || l.lineCode.startsWith(upperVal)).slice(0, 5);
+        // Removed strict 8-item limit for buses, increased to 100 for better UX
+        const busMatches = allRoutesDB.filter(r => r.route.startsWith(upperVal)).slice(0, 100);
+        const mtrLineMatches = allMtrLines.filter(l => l.lineName.includes(val) || l.lineCode.startsWith(upperVal));
+        const mtrStationMatches = allMtrStations.filter(s => s.staName.includes(val) || s.staCode.startsWith(upperVal)).slice(0, 20);
         
         const getBadgeClass = co => ({'KMB':'badge-kmb', 'CTB':'badge-ctb', 'NLB':'badge-nlb', 'MTR': 'badge-mtr'}[co]);
         const getBadgeText = co => ({'KMB':'九巴', 'CTB':'城巴', 'NLB':'嶼巴', 'MTR':'港鐵'}[co]);
@@ -653,6 +650,12 @@
                  <div class="sug-left"><span class="co-badge ${getBadgeClass('MTR')}">${getBadgeText('MTR')}</span><span class="sug-route">${l.lineName}</span></div>
                 <span class="sug-desc">顯示整條路綫</span>
             </div>`).join('');
+
+        const mtrStationHtml = mtrStationMatches.map(s => `
+            <div class="suggestion-item" onmousedown="selectSuggestion({type: 'MTR_STATION', lineCode: '${s.lineCode}', staCode: '${s.staCode}', inputId: '${input.id}', listId: '${listId}'})">
+                 <div class="sug-left"><span class="co-badge ${getBadgeClass('MTR')}">${getBadgeText('MTR')}</span><span class="sug-route">${s.staName}</span></div>
+                <span class="sug-desc">跳轉至 ${s.lineName}</span>
+            </div>`).join('');
             
         const busHtml = busMatches.map(r => `
             <div class="suggestion-item" onmousedown="selectSuggestion({type: 'BUS', route: '${r.route}', co: '${r.co}', inputId: '${input.id}', listId: '${listId}'})">
@@ -660,7 +663,7 @@
                 <span class="sug-desc">${r.orig} ⇄ ${r.dest}</span>
             </div>`).join('');
 
-        list.innerHTML = mtrLineHtml + busHtml;
+        list.innerHTML = mtrLineHtml + mtrStationHtml + busHtml;
         list.classList.toggle('show', list.innerHTML.length > 0);
     }
     function clearSearch(id) {
@@ -675,8 +678,8 @@
         
         const actionMap = {
             'BUS': () => createCard(params.route, params.co),
-            'MTR': () => createMtrCard(params.lineCode, params.staCode),
-            'MTR_LINE': () => createMtrLineCard(params.lineCode)
+            'MTR_LINE': () => createMtrLineCard(params.lineCode),
+            'MTR_STATION': () => createMtrLineCard(params.lineCode, null, params.staCode) // Pass station to auto-pin
         };
 
         if (inputId === 'route-input') {
@@ -718,9 +721,10 @@
         document.getElementById('add-card-section').style.display = 'flex';
     }
 
-    function createMtrLineCard(lineCode, saved = null) {
+    // Modified to accept initialPin
+    function createMtrLineCard(lineCode, saved = null, initialPin = null) {
         const id = `card-${++cardCounter}`;
-        const card = new MTRLineCard(lineCode, id, saved);
+        const card = new MTRLineCard(lineCode, id, saved, initialPin);
         window.cardRegistry[id] = card;
         card.init();
         document.getElementById('add-card-section').style.display = 'flex';
@@ -740,7 +744,7 @@
     }
 
 
-    // --- Class: MTR Station Card ---
+    // --- Class: MTR Station Card (Legacy single station view) ---
     class MTRStationCard extends BaseCard {
         constructor(lineCode, staCode, id, saved) {
             super();
@@ -821,7 +825,6 @@
                 const arrivalTime = new Date(train.time);
                 const diffMins = Math.round((arrivalTime - new Date()) / 60000);
                 
-                // Filter ridiculous times
                 if (diffMins > 120 || diffMins < -5) return '';
 
                 const minStr = diffMins <= 0 ? '即將' : `${diffMins}分`;
@@ -856,14 +859,15 @@
 
     // --- Class: MTR Line Card ---
     class MTRLineCard extends BaseCard {
-        constructor(lineCode, id, saved) {
+        constructor(lineCode, id, saved, initialPin = null) {
             super();
             this.id = id;
             this.lineCode = lineCode;
             this.lineInfo = allMtrLines.find(l => l.lineCode === lineCode);
             this.dir = saved ? saved.dir : 'UP';
-            this.markedSeq = saved ? saved.markedSeq : null; 
-            this.filteredSeq = saved ? saved.filteredSeq : null;
+            // Supports both saved state and direct initial pin from search
+            this.markedSeq = (saved ? saved.markedSeq : null) || initialPin; 
+            this.filteredSeq = (saved ? saved.filteredSeq : null) || (initialPin ? initialPin : null);
             this.element = null;
             this.timer = null;
         }
