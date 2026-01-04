@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
-    <!-- iOS Web App 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="巴士班次">
+    <meta name="apple-mobile-web-app-title" content="交通班次">
 
-    <!-- iOS 主畫面圖示 -->
+    <!-- 圖示設定 -->
     <link rel="apple-touch-icon" sizes="180x180" href="bus-logo.jpg">
-    <!-- 瀏覽器分頁圖示 -->
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚌%3C/text%3E%3C/svg%3E">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚇%3C/text%3E%3C/svg%3E">
 
     <title>香港交通班次查詢</title>
     <style>
+        /* --- 基礎變數與樣式 --- */
         :root {
             --bg-color: #F2F2F7;
             --card-bg: #FFFFFF;
@@ -27,7 +25,6 @@
             --mtr-purple: #5856D6;
             --accent: #007AFF;
             --separator: #E5E5EA;
-            --sidebar-width: 280px;
         }
         body.dark-mode {
             --bg-color: #000000;
@@ -49,12 +46,92 @@
         }
         .container { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 600px; margin: 0 auto; overflow: hidden; position: relative; z-index: 1; }
         
-        /* 頂部搜尋區 */
+        /* --- 頂部搜尋區 --- */
         .search-area {
-            padding: 12px 16px; background: var(--bg-color); display: flex; gap: 8px;
+            padding: 12px 16px; background: var(--bg-color); display: flex; gap: 10px;
             z-index: 200; box-shadow: 0 1px 0 rgba(0,0,0,0.05); align-items: center;
+            position: relative;
         }
-        .menu-btn { font-size: 1.5rem; padding: 4px 8px; cursor: pointer; color: var(--text-main); }
+        .menu-btn { font-size: 1.5rem; padding: 4px 4px; cursor: pointer; color: var(--text-main); }
+        
+        /* --- MTR 按鈕與泡泡 (無滑動條優化) --- */
+        .mtr-trigger-btn {
+            width: 40px; height: 40px; border-radius: 50%; 
+            background: var(--card-bg); color: var(--text-main);
+            border: 1px solid rgba(0,0,0,0.1);
+            font-size: 1.2rem; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: transform 0.2s, background 0.2s;
+            flex-shrink: 0;
+        }
+        .mtr-trigger-btn:active { transform: scale(0.9); }
+        .mtr-trigger-btn.active { background: var(--mtr-purple); color: white; border-color: var(--mtr-purple); }
+
+        .mtr-popup {
+            position: absolute;
+            width: 280px; max-width: 90vw; 
+            /* 移除 max-height 和 scroll，改為 auto height 和 hidden overflow */
+            height: auto;
+            overflow: hidden; 
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+            z-index: 1500;
+            padding: 12px;
+            display: none;
+            border: 1px solid var(--separator);
+        }
+        
+        /* 頂部泡泡樣式 */
+        .mtr-popup.top-popup {
+            top: 60px; left: 10px;
+            transform-origin: top left;
+            animation: popInTop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        /* 底部泡泡樣式 (向上彈出) */
+        .mtr-popup.bottom-popup {
+            bottom: 60px; left: 0px;
+            top: auto;
+            transform-origin: bottom left;
+            animation: popInBottom 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .mtr-popup.show { display: block; }
+
+        @keyframes popInTop { from { opacity: 0; transform: scale(0.8) translateY(-10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        @keyframes popInBottom { from { opacity: 0; transform: scale(0.8) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+        .mtr-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px; 
+        }
+        .mtr-line-item {
+            background: rgba(0,0,0,0.03);
+            border-radius: 8px;
+            padding: 8px;
+            display: flex; align-items: center; gap: 6px;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .mtr-line-item:active { background: rgba(0,0,0,0.1); }
+        .mtr-color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .mtr-line-name { font-weight: 600; font-size: 0.85rem; color: var(--text-main); }
+        
+        /* 泡泡箭頭 */
+        .mtr-popup-arrow {
+            position: absolute; width: 12px; height: 12px; background: var(--card-bg);
+        }
+        .mtr-popup-arrow.top-arrow {
+            top: -6px; left: 24px; transform: rotate(45deg);
+            border-left: 1px solid var(--separator); border-top: 1px solid var(--separator);
+        }
+        .mtr-popup-arrow.bottom-arrow {
+            bottom: -6px; left: 24px; transform: rotate(225deg);
+            border-left: 1px solid var(--separator); border-top: 1px solid var(--separator);
+        }
+
+        /* --- 搜尋輸入框 --- */
         .search-wrapper { position: relative; flex: 1; }
         .search-input {
             width: 100%; padding: 10px 32px 10px 14px; border-radius: 12px; border: none;
@@ -72,9 +149,10 @@
             width: 20px; height: 20px; border-radius: 50%; background: rgba(142, 142, 147, 0.3);
             color: white; font-size: 12px; display: none; align-items: center; justify-content: center; cursor: pointer;
         }
+        
         .suggestions-list {
             position: absolute; top: 110%; left: 0; right: 0; background: var(--card-bg);
-            border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); max-height: 50vh; /* 增加顯示高度 */
+            border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); max-height: 50vh;
             overflow-y: auto; z-index: 1000; display: none;
         }
         .suggestions-list.show { display: block; border: 1px solid rgba(0,0,0,0.05); }
@@ -97,19 +175,14 @@
         }
         .search-btn:active { transform: scale(0.96); opacity: 0.9; }
         
-        /* 內容區 */
+        /* --- 內容與卡片 --- */
         .content-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px 16px; scroll-behavior: smooth; display: flex; flex-direction: column;}
         
-        /* 卡片 */
         .card {
-            background: var(--card-bg); 
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            background: var(--card-bg); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             border: 1px solid rgba(0,0,0,0.05); margin-bottom: 20px; position: relative;
-            animation: slideIn 0.3s ease-out; 
-            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease, max-height 0.3s ease, margin-bottom 0.3s ease, padding 0.3s ease;
-            flex-shrink: 0;
-            overflow: hidden;
+            animation: slideIn 0.3s ease-out; flex-shrink: 0; overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
         }
         .card.dragging { opacity: 0.5; background: #f8f8f8; box-shadow: 0 10px 20px rgba(0,0,0,0.2); z-index: 100; }
         @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -125,17 +198,21 @@
         .mtr-card .card-header { background: linear-gradient(135deg, var(--mtr-purple), #4a48b8); }
 
         .ctb-card .close-card-btn, .nlb-card .close-card-btn, .mtr-card .close-card-btn { background: rgba(0, 0, 0, 0.1); color: white; }
-        
-        /* 方向按鈕樣式 */
         .dir-opt { flex: 1; text-align: center; font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); padding: 6px 4px; border-radius: 6px; cursor: pointer; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        /* 不同公司的 Active 狀態文字顏色 */
         .dir-opt.active { background: white; color: var(--kmb-red); font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .ctb-card .dir-opt.active { color: #C2A000; }
         .nlb-card .dir-opt.active { color: var(--nlb-green); }
         .mtr-card .dir-opt.active { color: var(--mtr-purple); }
 
-        .drag-handle { position: absolute; top: 12px; left: 10px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: rgba(255, 255, 255, 0.6); cursor: grab; z-index: 15; }
+        /* 漢堡包拖曳手柄樣式 */
+        .drag-handle { 
+            position: absolute; top: 12px; left: 10px; width: 24px; height: 24px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 1.2rem; color: rgba(255, 255, 255, 0.6); 
+            cursor: grab; z-index: 15; 
+        }
+        .drag-handle:active { cursor: grabbing; color: white; }
+
         .close-card-btn { position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; background: rgba(0, 0, 0, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold; font-size: 14px; backdrop-filter: blur(4px); z-index: 10; }
         .header-top { display: flex; justify-content: space-between; align-items: center; padding-right: 30px; }
         .icon { font-size: 1.4rem; margin-right: 8px; }
@@ -144,7 +221,6 @@
         
         .card-content { padding: 4px 16px 16px; min-height: 50px; }
         
-        /* Shared Schedule Item Style (Bus & MTR) */
         .schedule-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px dashed var(--separator); cursor: pointer; overflow: hidden; max-height: 100px; opacity: 1; transition: all 0.4s; }
         .schedule-item:last-child { border-bottom: none; }
         .schedule-item.hidden-row { max-height: 0; opacity: 0; padding: 0; margin: 0; border: none; pointer-events: none; }
@@ -153,24 +229,11 @@
         .dest-seq { color: var(--text-sub); font-size: 0.8rem; margin-right: 10px; font-weight: 400; display: inline-block; width: 30px; text-align: center; }
         
         .eta-container { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; min-width: 120px; text-align: right; }
-
-        /* MTR Card Content */
         .mtr-direction-group { padding: 8px 0; }
         .mtr-direction-group:not(:last-child) { border-bottom: 1px dashed var(--separator); }
 
-        .mtr-compact-eta {
-            font-size: 1rem;
-            text-align: right;
-            margin-left: 6px;
-            display: inline-flex;
-            align-items: center;
-        }
-
-        .mtr-compact-eta .mtr-eta-details {
-            font-size: 0.9rem;
-            color: var(--text-sub);
-            margin-left: 4px;
-        }
+        .mtr-compact-eta { font-size: 1rem; text-align: right; margin-left: 6px; display: inline-flex; align-items: center; }
+        .mtr-compact-eta .mtr-eta-details { font-size: 0.9rem; color: var(--text-sub); margin-left: 4px; }
 
         @keyframes pinDrop {
             0% { transform: translateY(-20px) scale(1.2); opacity: 0; }
@@ -180,58 +243,29 @@
         }
         .pin-icon { display: inline-block; animation: pinDrop 0.4s ease-out; }
 
-        /* 統一的時間膠囊樣式 (Bus & MTR) */
         .eta-minutes { 
-            font-size: 1rem; 
-            color: #34C759; /* Green Text */
-            font-weight: 700; 
-            background: #E8F5E9; /* Light Green BG */
-            padding: 4px 8px; 
-            border-radius: 6px; 
-            display: inline-block; 
-            min-width: 45px; 
-            text-align: center; 
-            margin-left: 4px; 
+            font-size: 1rem; color: #34C759; font-weight: 700; background: #E8F5E9; 
+            padding: 4px 8px; border-radius: 6px; display: inline-block; min-width: 45px; text-align: center; margin-left: 4px; 
         }
-        
-        body.dark-mode .eta-minutes { 
-            background: rgba(52, 199, 89, 0.2); 
-            color: #32D74B; 
-        }
-        
-        .urgent { 
-            color: #FF3B30 !important; 
-            background: #FFEBEE !important; 
-        }
-        
-        body.dark-mode .urgent { 
-            background: rgba(255, 69, 58, 0.2) !important; 
-            color: #FF453A !important; 
-        }
-        
-        .eta-minutes.show-real-time { 
-            background: transparent !important; 
-            color: var(--text-main) !important; 
-            border: 1px solid rgba(142, 142, 147, 0.3); 
-            font-family: "SF Pro Display", sans-serif; 
-        }
-        
+        body.dark-mode .eta-minutes { background: rgba(52, 199, 89, 0.2); color: #32D74B; }
+        .urgent { color: #FF3B30 !important; background: #FFEBEE !important; }
+        body.dark-mode .urgent { background: rgba(255, 69, 58, 0.2) !important; color: #FF453A !important; }
+        .eta-minutes.show-real-time { background: transparent !important; color: var(--text-main) !important; border: 1px solid rgba(142, 142, 147, 0.3); font-family: "SF Pro Display", sans-serif; }
         .no-schedule { color: var(--text-sub); font-size: 0.85rem; }
-
         .status-msg { text-align: center; padding: 40px 20px; color: var(--text-sub); }
         .fading { opacity: 0.5; pointer-events: none; }
         #empty-state { text-align: center; padding: 60px 20px; color: var(--text-sub); display: flex; flex-direction: column; align-items: center; }
         #empty-state .big-icon { font-size: 4rem; margin-bottom: 20px; opacity: 0.3; }
 
-        /* 底部新增 */
-        #add-card-section { padding: 20px 0 40px; display: none; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
+        /* --- 底部新增區域 --- */
+        #add-card-section { padding: 20px 0 40px; display: none; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
         .add-circle-btn { width: 56px; height: 56px; border-radius: 50%; background: var(--card-bg); color: var(--accent); font-size: 2rem; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
         .add-circle-btn:active { transform: scale(0.9); }
-        #add-search-wrapper { display: none; width: 100%; gap: 8px; animation: slideUp 0.2s ease-out; background: var(--bg-color); padding: 5px; border-radius: 12px; }
+        #add-search-wrapper { display: none; width: 100%; gap: 8px; animation: slideUp 0.2s ease-out; background: var(--bg-color); padding: 5px; border-radius: 12px; position: relative; }
         #add-search-wrapper.active { display: flex; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Sidebar */
+        /* --- Sidebar --- */
         .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s; backdrop-filter: blur(2px); }
         .sidebar-overlay.active { opacity: 1; visibility: visible; }
         .sidebar { position: fixed; top: 0; left: -100%; width: 85%; max-width: 320px; height: 100%; background: var(--card-bg); z-index: 1001; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; box-shadow: 2px 0 12px rgba(0,0,0,0.1); }
@@ -254,23 +288,12 @@
         .saved-drag-handle, .delete-btn { display: none; }
         .sidebar-content.editing .saved-drag-handle, .sidebar-content.editing .delete-btn { display: flex; } 
         .sidebar-content.editing .saved-item { padding-left: 10px; }
-        
         .saved-drag-handle { margin-right: 16px; color: var(--text-sub); font-size: 1.3rem; align-items: center; }
-        
         .saved-info { flex: 1; pointer-events: none; }
         .saved-name { font-size: 1rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px;}
         .default-badge { font-size: 0.65rem; color: white; background: #34C759; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
         .saved-detail { font-size: 0.8rem; color: var(--text-sub); margin-top: 2px; }
-        
-        .delete-btn { 
-            width: 28px; height: 28px; 
-            border-radius: 50%; 
-            background: #FF3B30; color: white; 
-            align-items: center; justify-content: center; 
-            font-size: 0.9rem; margin-left: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            z-index: 2; 
-        }
+        .delete-btn { width: 28px; height: 28px; border-radius: 50%; background: #FF3B30; color: white; align-items: center; justify-content: center; font-size: 0.9rem; margin-left: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 2; }
 
         .sidebar-footer { padding: 16px; border-top: 1px solid var(--separator); display: flex; gap: 10px; }
         .save-all-btn { flex: 1; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
@@ -301,9 +324,20 @@
 <div class="container">
     <div class="search-area">
         <div class="menu-btn" onclick="toggleSidebar(true)">☰</div>
+        
+        <!-- 頂部 MTR 按鈕 -->
+        <button class="mtr-trigger-btn" id="mtr-btn-top" onclick="toggleMtrPopup('top')">🚇</button>
+        
+        <!-- 頂部 MTR 泡泡 (向下彈出) -->
+        <div id="mtr-popup-top" class="mtr-popup top-popup" onclick="event.stopPropagation()">
+            <div class="mtr-popup-arrow top-arrow"></div>
+            <div style="font-weight:700; margin-bottom:8px; font-size:0.85rem; color:var(--text-sub);">選擇港鐵路綫</div>
+            <div class="mtr-grid" id="mtr-grid-top"></div>
+        </div>
+
         <div class="search-wrapper">
-            <input type="text" id="route-input" class="search-input" placeholder="輸入路線 / 港鐵綫 / 車站" value="" autocomplete="off"
-                   oninput="handleInput(this, 'suggestions', 'clear-search')" 
+            <input type="text" id="route-input" class="search-input" placeholder="輸入路線 / 車站" value="" autocomplete="off"
+                   oninput="debouncedHandleInput(this, 'suggestions', 'clear-search')" 
                    onfocus="handleInput(this, 'suggestions', 'clear-search')"
                    onkeypress="if(event.key==='Enter') searchTopItem()">
             <div id="clear-search" class="clear-input-btn" onclick="clearSearch('route-input')">✕</div>
@@ -319,13 +353,26 @@
                 <div>請輸入巴士路線、港鐵綫或車站開始查詢</div>
             </div>
         </div>
-        <!-- 底部新增按鈕區域 -->
+        
+        <!-- 底部新增區 -->
         <div id="add-card-section">
             <button id="show-add-btn" class="add-circle-btn" onclick="toggleAddSearch(true)">＋</button>
             <div id="add-search-wrapper">
+                
+                <!-- 底部 MTR 按鈕 -->
+                <button class="mtr-trigger-btn" id="mtr-btn-bottom" onclick="toggleMtrPopup('bottom')">🚇</button>
+                
+                <!-- 底部 MTR 泡泡 (向上彈出) -->
+                <div id="mtr-popup-bottom" class="mtr-popup bottom-popup" onclick="event.stopPropagation()">
+                    <div class="mtr-popup-arrow bottom-arrow"></div>
+                    <div style="font-weight:700; margin-bottom:8px; font-size:0.85rem; color:var(--text-sub);">選擇港鐵路綫</div>
+                    <div class="mtr-grid" id="mtr-grid-bottom"></div>
+                </div>
+
                 <div class="search-wrapper">
-                    <input type="text" id="add-route-input" class="search-input" placeholder="輸入路線 / 港鐵綫 / 車站" value="" autocomplete="off"
-                           oninput="handleInput(this, 'add-suggestions', 'add-clear-search')" 
+                    <!-- 更新: placeholder 統一為 "輸入路線 / 車站" -->
+                    <input type="text" id="add-route-input" class="search-input" placeholder="輸入路線 / 車站" value="" autocomplete="off"
+                           oninput="debouncedHandleInput(this, 'add-suggestions', 'add-clear-search')" 
                            onfocus="handleInput(this, 'add-suggestions', 'add-clear-search')"
                            onkeypress="if(event.key==='Enter') addItem()">
                     <div id="add-clear-search" class="clear-input-btn" onclick="clearSearch('add-route-input')">✕</div>
@@ -339,6 +386,15 @@
 </div>
 
 <script>
+    /* --- 工具函數 --- */
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
     const KMB_API = 'https://data.etabus.gov.hk/v1/transport/kmb';
     const CTB_API = 'https://rt.data.gov.hk/v2/transport/citybus';
     const NLB_API = 'https://rt.data.gov.hk/v2/transport/nlb';
@@ -351,9 +407,17 @@
     let allMtrLines = [];
     let mtrStationNames = {};
 
+    const LINE_COLORS = {
+        'AEL': '#007078', 'TCL': '#F38B00', 'TML': '#923011', 'TKL': '#692E6C',
+        'EAL': '#53B7E8', 'SIL': '#B6BD00', 'TWL': '#E2231A', 'ISL': '#0071CE',
+        'KTL': '#00AB4E', 'DRL': '#F550A6'
+    };
+
     window.cardRegistry = {};
     let cardCounter = 0;
     let isEditMode = false;
+
+    const debouncedHandleInput = debounce((input, listId, clearId) => handleInput(input, listId, clearId), 150);
 
     document.addEventListener('DOMContentLoaded', () => {
         initDarkMode();
@@ -365,6 +429,11 @@
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.search-wrapper')) {
                 document.querySelectorAll('.suggestions-list').forEach(el => el.classList.remove('show'));
+            }
+            // 點擊外部關閉所有 MTR Popups
+            if (!e.target.closest('.mtr-popup') && !e.target.closest('.mtr-trigger-btn')) {
+                document.querySelectorAll('.mtr-popup').forEach(el => el.classList.remove('show'));
+                document.querySelectorAll('.mtr-trigger-btn').forEach(el => el.classList.remove('active'));
             }
         });
         
@@ -382,82 +451,70 @@
         setupDrag('saved-list-container', '.saved-item');
     });
 
+    // --- MTR Popup Logic (支援 Top 和 Bottom) ---
+    function toggleMtrPopup(position) {
+        event.stopPropagation();
+        const popupId = `mtr-popup-${position}`;
+        const btnId = `mtr-btn-${position}`;
+        const popup = document.getElementById(popupId);
+        const btn = document.getElementById(btnId);
+        const isShowing = popup.classList.contains('show');
+        
+        // 先關閉所有其他 popup
+        document.querySelectorAll('.mtr-popup').forEach(el => el.classList.remove('show'));
+        document.querySelectorAll('.mtr-trigger-btn').forEach(el => el.classList.remove('active'));
+
+        if (!isShowing) {
+            renderMtrGrid(position);
+            popup.classList.add('show');
+            btn.classList.add('active');
+        }
+    }
+
+    function renderMtrGrid(position) {
+        const gridId = `mtr-grid-${position}`;
+        const grid = document.getElementById(gridId);
+        if (grid.children.length > 0) return;
+
+        grid.innerHTML = allMtrLines.map(line => `
+            <div class="mtr-line-item" onclick="onMtrLineSelect('${line.lineCode}', '${position}')">
+                <div class="mtr-color-dot" style="background:${LINE_COLORS[line.lineCode] || '#999'}"></div>
+                <div class="mtr-line-name">${line.lineName}</div>
+            </div>
+        `).join('');
+    }
+
+    function onMtrLineSelect(lineCode, source) {
+        // 如果來源是 'top'，則清除所有卡片 (查詢模式)
+        if (source === 'top') {
+            clearAllCards(false);
+        }
+        // 如果來源是 'bottom'，則保留卡片 (新增模式)
+        // 無論哪種情況都建立新卡片
+        createMtrLineCard(lineCode);
+        
+        // 關閉所有彈出視窗
+        document.querySelectorAll('.mtr-popup').forEach(el => el.classList.remove('show'));
+        document.querySelectorAll('.mtr-trigger-btn').forEach(el => el.classList.remove('active'));
+    }
+
     // --- MTR Data ---
     function buildMtrDb() {
         const MTR_DATA = {
-            'AEL': { name: '機場快綫', stations: [
-                { c: 'HOK', n: '香港' }, { c: 'KOW', n: '九龍' }, { c: 'TSY', n: '青衣' },
-                { c: 'AIR', n: '機場' }, { c: 'AWE', n: '博覽館' }
-            ]},
-            'TCL': { name: '東涌綫', stations: [
-                { c: 'HOK', n: '香港' }, { c: 'KOW', n: '九龍' }, { c: 'OLY', n: '奧運' },
-                { c: 'NAC', n: '南昌' }, { c: 'LAK', n: '荔景' }, { c: 'TSY', n: '青衣' },
-                { c: 'SUN', n: '欣澳' }, { c: 'TUC', n: '東涌' }
-            ]},
-            'TML': { name: '屯馬綫', stations: [
-                { c: 'WKS', n: '烏溪沙' }, { c: 'MOS', n: '馬鞍山' }, { c: 'HEO', n: '恆安' },
-                { c: 'TSH', n: '大水坑' }, { c: 'SHM', n: '石門' }, { c: 'CIO', n: '第一城' },
-                { c: 'STW', n: '沙田圍' }, { c: 'CKT', n: '車公廟' }, { c: 'TAW', n: '大圍' },
-                { c: 'HIK', n: '顯徑' }, { c: 'DIH', n: '鑽石山' }, { c: 'KAT', n: '啟德' },
-                { c: 'SUW', n: '宋皇臺' }, { c: 'TKW', n: '土瓜灣' }, { c: 'HOM', n: '何文田' },
-                { c: 'HUH', n: '紅磡' }, { c: 'ETS', n: '尖東' }, { c: 'AUS', n: '柯士甸' },
-                { c: 'NAC', n: '南昌' }, { c: 'MEF', n: '美孚' }, { c: 'TWW', n: '荃灣西' },
-                { c: 'KSR', n: '錦上路' }, { c: 'YUL', n: '元朗' }, { c: 'LOP', n: '朗屏' },
-                { c: 'TIS', n: '天水圍' }, { c: 'SIH', n: '兆康' }, { c: 'TUM', n: '屯門' }
-            ]},
-            'TKL': { name: '將軍澳綫', stations: [
-                { c: 'NOP', n: '北角' }, { c: 'QUB', n: '鰂魚涌' }, { c: 'YAT', n: '油塘' },
-                { c: 'TIK', n: '調景嶺' }, { c: 'TKO', n: '將軍澳' }, { c: 'HAH', n: '坑口' },
-                { c: 'POA', n: '寶琳' }, { c: 'LHP', n: '康城' } 
-            ]},
-            'EAL': { name: '東鐵綫', stations: [
-                { c: 'ADM', n: '金鐘' }, { c: 'EXC', n: '會展' }, { c: 'HUH', n: '紅磡' },
-                { c: 'MKK', n: '旺角東' }, { c: 'KOT', n: '九龍塘' }, { c: 'TAW', n: '大圍' },
-                { c: 'SHT', n: '沙田' }, { c: 'FOT', n: '火炭' }, { c: 'RAC', n: '馬場' },
-                { c: 'UNI', n: '大學' }, { c: 'TAP', n: '大埔墟' }, { c: 'TWO', n: '太和' },
-                { c: 'FAN', n: '粉嶺' }, { c: 'SHS', n: '上水' }, { c: 'LOW', n: '羅湖' },
-                { c: 'LMC', n: '落馬洲' }
-            ]},
-            'SIL': { name: '南港島綫', stations: [
-                { c: 'ADM', n: '金鐘' }, { c: 'OCP', n: '海洋公園' }, { c: 'WCH', n: '黃竹坑' },
-                { c: 'LET', n: '利東' }, { c: 'SOH', n: '海怡半島' }
-            ]},
-            'TWL': { name: '荃灣綫', stations: [
-                { c: 'CEN', n: '中環' }, { c: 'ADM', n: '金鐘' }, { c: 'TST', n: '尖沙咀' },
-                { c: 'JOR', n: '佐敦' }, { c: 'YMT', n: '油麻地' }, { c: 'MOK', n: '旺角' },
-                { c: 'PRE', n: '太子' }, { c: 'SSP', n: '深水埗' }, { c: 'CSW', n: '長沙灣' },
-                { c: 'LCK', n: '荔枝角' }, { c: 'MEF', n: '美孚' }, { c: 'LAK', n: '荔景' },
-                { c: 'KWF', n: '葵芳' }, { c: 'KWH', n: '葵興' }, { c: 'TWH', n: '大窩口' },
-                { c: 'TSW', n: '荃灣' }
-            ]},
-            'ISL': { name: '港島綫', stations: [
-                { c: 'KET', n: '堅尼地城' }, { c: 'HKU', n: '香港大學' }, { c: 'SYP', n: '西營盤' },
-                { c: 'SHW', n: '上環' }, { c: 'CEN', n: '中環' }, { c: 'ADM', n: '金鐘' },
-                { c: 'WAC', n: '灣仔' }, { c: 'CAB', n: '銅鑼灣' }, { c: 'TIH', n: '天后' },
-                { c: 'FOH', n: '炮台山' }, { c: 'NOP', n: '北角' }, { c: 'QUB', n: '鰂魚涌' },
-                { c: 'TAK', n: '太古' }, { c: 'SWH', n: '西灣河' }, { c: 'SKW', n: '筲箕灣' },
-                { c: 'HFC', n: '杏花邨' }, { c: 'CHW', n: '柴灣' }
-            ]},
-            'KTL': { name: '觀塘綫', stations: [
-                { c: 'WHA', n: '黃埔' }, { c: 'HOM', n: '何文田' }, { c: 'YMT', n: '油麻地' },
-                { c: 'MOK', n: '旺角' }, { c: 'PRE', n: '太子' }, { c: 'SKM', n: '石硤尾' },
-                { c: 'KOT', n: '九龍塘' }, { c: 'LOF', n: '樂富' }, { c: 'WTS', n: '黃大仙' },
-                { c: 'DIH', n: '鑽石山' }, { c: 'CHH', n: '彩虹' }, { c: 'KOB', n: '九龍灣' },
-                { c: 'NTK', n: '牛頭角' }, { c: 'KWT', n: '觀塘' }, { c: 'LAT', n: '藍田' },
-                { c: 'YAT', n: '油塘' }, { c: 'TIK', n: '調景嶺' }
-            ]},
-            'DRL': { name: '迪士尼綫', stations: [
-                { c: 'SUN', n: '欣澳' }, { c: 'DIS', n: '迪士尼' }
-            ]}
+            'AEL': { name: '機場快綫', stations: [{ c: 'HOK', n: '香港' }, { c: 'KOW', n: '九龍' }, { c: 'TSY', n: '青衣' }, { c: 'AIR', n: '機場' }, { c: 'AWE', n: '博覽館' }]},
+            'TCL': { name: '東涌綫', stations: [{ c: 'HOK', n: '香港' }, { c: 'KOW', n: '九龍' }, { c: 'OLY', n: '奧運' }, { c: 'NAC', n: '南昌' }, { c: 'LAK', n: '荔景' }, { c: 'TSY', n: '青衣' }, { c: 'SUN', n: '欣澳' }, { c: 'TUC', n: '東涌' }]},
+            'TML': { name: '屯馬綫', stations: [{ c: 'WKS', n: '烏溪沙' }, { c: 'MOS', n: '馬鞍山' }, { c: 'HEO', n: '恆安' }, { c: 'TSH', n: '大水坑' }, { c: 'SHM', n: '石門' }, { c: 'CIO', n: '第一城' }, { c: 'STW', n: '沙田圍' }, { c: 'CKT', n: '車公廟' }, { c: 'TAW', n: '大圍' }, { c: 'HIK', n: '顯徑' }, { c: 'DIH', n: '鑽石山' }, { c: 'KAT', n: '啟德' }, { c: 'SUW', n: '宋皇臺' }, { c: 'TKW', n: '土瓜灣' }, { c: 'HOM', n: '何文田' }, { c: 'HUH', n: '紅磡' }, { c: 'ETS', n: '尖東' }, { c: 'AUS', n: '柯士甸' }, { c: 'NAC', n: '南昌' }, { c: 'MEF', n: '美孚' }, { c: 'TWW', n: '荃灣西' }, { c: 'KSR', n: '錦上路' }, { c: 'YUL', n: '元朗' }, { c: 'LOP', n: '朗屏' }, { c: 'TIS', n: '天水圍' }, { c: 'SIH', n: '兆康' }, { c: 'TUM', n: '屯門' }]},
+            'TKL': { name: '將軍澳綫', stations: [{ c: 'NOP', n: '北角' }, { c: 'QUB', n: '鰂魚涌' }, { c: 'YAT', n: '油塘' }, { c: 'TIK', n: '調景嶺' }, { c: 'TKO', n: '將軍澳' }, { c: 'HAH', n: '坑口' }, { c: 'POA', n: '寶琳' }, { c: 'LHP', n: '康城' } ]},
+            'EAL': { name: '東鐵綫', stations: [{ c: 'ADM', n: '金鐘' }, { c: 'EXC', n: '會展' }, { c: 'HUH', n: '紅磡' }, { c: 'MKK', n: '旺角東' }, { c: 'KOT', n: '九龍塘' }, { c: 'TAW', n: '大圍' }, { c: 'SHT', n: '沙田' }, { c: 'FOT', n: '火炭' }, { c: 'RAC', n: '馬場' }, { c: 'UNI', n: '大學' }, { c: 'TAP', n: '大埔墟' }, { c: 'TWO', n: '太和' }, { c: 'FAN', n: '粉嶺' }, { c: 'SHS', n: '上水' }, { c: 'LOW', n: '羅湖' }, { c: 'LMC', n: '落馬洲' }]},
+            'SIL': { name: '南港島綫', stations: [{ c: 'ADM', n: '金鐘' }, { c: 'OCP', n: '海洋公園' }, { c: 'WCH', n: '黃竹坑' }, { c: 'LET', n: '利東' }, { c: 'SOH', n: '海怡半島' }]},
+            'TWL': { name: '荃灣綫', stations: [{ c: 'CEN', n: '中環' }, { c: 'ADM', n: '金鐘' }, { c: 'TST', n: '尖沙咀' }, { c: 'JOR', n: '佐敦' }, { c: 'YMT', n: '油麻地' }, { c: 'MOK', n: '旺角' }, { c: 'PRE', n: '太子' }, { c: 'SSP', n: '深水埗' }, { c: 'CSW', n: '長沙灣' }, { c: 'LCK', n: '荔枝角' }, { c: 'MEF', n: '美孚' }, { c: 'LAK', n: '荔景' }, { c: 'KWF', n: '葵芳' }, { c: 'KWH', n: '葵興' }, { c: 'TWH', n: '大窩口' }, { c: 'TSW', n: '荃灣' }]},
+            'ISL': { name: '港島綫', stations: [{ c: 'KET', n: '堅尼地城' }, { c: 'HKU', n: '香港大學' }, { c: 'SYP', n: '西營盤' }, { c: 'SHW', n: '上環' }, { c: 'CEN', n: '中環' }, { c: 'ADM', n: '金鐘' }, { c: 'WAC', n: '灣仔' }, { c: 'CAB', n: '銅鑼灣' }, { c: 'TIH', n: '天后' }, { c: 'FOH', n: '炮台山' }, { c: 'NOP', n: '北角' }, { c: 'QUB', n: '鰂魚涌' }, { c: 'TAK', n: '太古' }, { c: 'SWH', n: '西灣河' }, { c: 'SKW', n: '筲箕灣' }, { c: 'HFC', n: '杏花邨' }, { c: 'CHW', n: '柴灣' }]},
+            'KTL': { name: '觀塘綫', stations: [{ c: 'WHA', n: '黃埔' }, { c: 'HOM', n: '何文田' }, { c: 'YMT', n: '油麻地' }, { c: 'MOK', n: '旺角' }, { c: 'PRE', n: '太子' }, { c: 'SKM', n: '石硤尾' }, { c: 'KOT', n: '九龍塘' }, { c: 'LOF', n: '樂富' }, { c: 'WTS', n: '黃大仙' }, { c: 'DIH', n: '鑽石山' }, { c: 'CHH', n: '彩虹' }, { c: 'KOB', n: '九龍灣' }, { c: 'NTK', n: '牛頭角' }, { c: 'KWT', n: '觀塘' }, { c: 'LAT', n: '藍田' }, { c: 'YAT', n: '油塘' }, { c: 'TIK', n: '調景嶺' }]},
+            'DRL': { name: '迪士尼綫', stations: [{ c: 'SUN', n: '欣澳' }, { c: 'DIS', n: '迪士尼' }]}
         };
-
         allMtrLines = Object.entries(MTR_DATA).map(([lineCode, lineData]) => ({
-            lineCode,
-            lineName: lineData.name,
-            stations: lineData.stations.reduce((acc, s) => { acc[s.c] = s.n; return acc; }, {}),
-            orderedStations: lineData.stations
+            lineCode, lineName: lineData.name, stations: lineData.stations.reduce((acc, s) => { acc[s.c] = s.n; return acc; }, {}), orderedStations: lineData.stations
         }));
-
         for (const [lineCode, lineData] of Object.entries(MTR_DATA)) {
             lineData.stations.forEach(s => {
                 allMtrStations.push({ lineCode, staCode: s.c, lineName: lineData.name, staName: s.n });
@@ -465,12 +522,9 @@
             });
         }
     }
-
     const LINE_TERMINALS = {
-        'AEL': { UP: '博覽館', DOWN: '香港' }, 'TCL': { UP: '東涌', DOWN: '香港' },
-        'TML': { UP: '屯門', DOWN: '烏溪沙' }, 'TKL': { UP: '寶琳 / 康城', DOWN: '北角' },
-        'EAL': { UP: '羅湖 / 落馬洲', DOWN: '金鐘' }, 'SIL': { UP: '海怡半島', DOWN: '金鐘' },
-        'TWL': { UP: '荃灣', DOWN: '中環' }, 'ISL': { UP: '柴灣', DOWN: '堅尼地城' },
+        'AEL': { UP: '博覽館', DOWN: '香港' }, 'TCL': { UP: '東涌', DOWN: '香港' }, 'TML': { UP: '屯門', DOWN: '烏溪沙' }, 'TKL': { UP: '寶琳 / 康城', DOWN: '北角' },
+        'EAL': { UP: '羅湖 / 落馬洲', DOWN: '金鐘' }, 'SIL': { UP: '海怡半島', DOWN: '金鐘' }, 'TWL': { UP: '荃灣', DOWN: '中環' }, 'ISL': { UP: '柴灣', DOWN: '堅尼地城' },
         'KTL': { UP: '調景嶺', DOWN: '黃埔' }, 'DRL': { UP: '迪士尼', DOWN: '欣澳' }
     };
 
@@ -519,10 +573,10 @@
                 const firstItem = item.data[0];
                  if (firstItem.type === 'MTR_LINE') {
                     const line = allMtrLines.find(l => l.lineCode === firstItem.lineCode);
-                    desc = `[港鐵] ${line.lineName}`;
+                    desc = `[港鐵] ${line ? line.lineName : firstItem.lineCode}`;
                 } else if (firstItem.type === 'MTR') {
                     const station = allMtrStations.find(s => s.staCode === firstItem.staCode);
-                    desc = `[港鐵] ${station.staName} (${station.lineName})`;
+                    desc = `[港鐵] ${station ? station.staName : firstItem.staCode} (${station ? station.lineName : ''})`;
                 } else {
                      desc = `[${firstItem.co||'KMB'}] ${firstItem.route} ${firstItem.destName ? '往 '+firstItem.destName : (firstItem.dir==='outbound'?'去程':'回程')}`;
                 }
@@ -592,7 +646,7 @@
                     return { type: 'MTR', lineCode: o.lineCode, staCode: o.staCode };
                 } else if (o instanceof MTRLineCard) {
                     return { type: 'MTR_LINE', lineCode: o.lineCode, dir: o.dir, markedSeq: o.markedSeq, filteredSeq: o.filteredSeq };
-                } else { // BusRouteCard
+                } else { 
                     return { type: 'BUS', route: o.route, dir: o.dir, co: o.company, destName: o.currentDestName, filteredSeq: o.filteredSeq, markedSeq: o.markedSeq };
                 }
             }).filter(x=>x);
@@ -608,7 +662,7 @@
                 createMtrCard(d.lineCode, d.staCode, d);
             } else if (d.type === 'MTR_LINE') {
                 createMtrLineCard(d.lineCode, d, d.markedSeq);
-            } else { // 'BUS' or legacy
+            } else { 
                 createCard(d.route, d.co || 'KMB', d);
             }
         });
@@ -637,8 +691,8 @@
             return;
         }
         
-        // Removed strict 8-item limit for buses, increased to 100 for better UX
-        const busMatches = allRoutesDB.filter(r => r.route.startsWith(upperVal)).slice(0, 100);
+        // Unified Search Logic: Bus + MTR Line + MTR Station
+        const busMatches = allRoutesDB.filter(r => r.route.startsWith(upperVal)).slice(0, 50);
         const mtrLineMatches = allMtrLines.filter(l => l.lineName.includes(val) || l.lineCode.startsWith(upperVal));
         const mtrStationMatches = allMtrStations.filter(s => s.staName.includes(val) || s.staCode.startsWith(upperVal)).slice(0, 20);
         
@@ -679,7 +733,7 @@
         const actionMap = {
             'BUS': () => createCard(params.route, params.co),
             'MTR_LINE': () => createMtrLineCard(params.lineCode),
-            'MTR_STATION': () => createMtrLineCard(params.lineCode, null, params.staCode) // Pass station to auto-pin
+            'MTR_STATION': () => createMtrLineCard(params.lineCode, null, params.staCode)
         };
 
         if (inputId === 'route-input') {
@@ -721,7 +775,6 @@
         document.getElementById('add-card-section').style.display = 'flex';
     }
 
-    // Modified to accept initialPin
     function createMtrLineCard(lineCode, saved = null, initialPin = null) {
         const id = `card-${++cardCounter}`;
         const card = new MTRLineCard(lineCode, id, saved, initialPin);
@@ -730,7 +783,6 @@
         document.getElementById('add-card-section').style.display = 'flex';
     }
 
-    // --- Base Card Class for common methods ---
     class BaseCard {
         destroy() {
             clearInterval(this.timer);
@@ -743,322 +795,175 @@
         }
     }
 
-
-    // --- Class: MTR Station Card (Legacy single station view) ---
     class MTRStationCard extends BaseCard {
         constructor(lineCode, staCode, id, saved) {
             super();
-            this.id = id;
-            this.lineCode = lineCode;
-            this.staCode = staCode;
+            this.id = id; this.lineCode = lineCode; this.staCode = staCode;
             this.stationInfo = allMtrStations.find(s => s.lineCode === lineCode && s.staCode === staCode);
-            this.element = null;
-            this.timer = null;
+            this.element = null; this.timer = null;
         }
-        
         init() {
             document.getElementById('empty-state')?.remove();
             const div = document.createElement('div');
-            div.className = 'card mtr-card';
-            div.id = this.id; div.setAttribute('draggable', 'true');
+            // 預設不可拖曳
+            div.setAttribute('draggable', 'false');
+            div.className = 'card mtr-card'; div.id = this.id; 
             div.innerHTML = `
                 <div class="card-header">
-                    <div class="drag-handle">≡</div><div class="close-card-btn" onclick="window.cardRegistry['${this.id}'].destroy()">✕</div>
-                    <div class="header-top">
-                        <div style="display:flex;align-items:center;">
-                            <span class="icon">🚇</span>
-                            <span class="card-title">${this.stationInfo.staName} <small>(${this.stationInfo.lineName})</small></span>
-                        </div>
-                        <div style="font-size:0.8rem;opacity:0.8" class="update-time"></div>
-                    </div>
+                    <div class="drag-handle" 
+                         onmousedown="this.closest('.card').setAttribute('draggable', 'true')" 
+                         onmouseup="this.closest('.card').setAttribute('draggable', 'false')">≡</div>
+                    <div class="close-card-btn" onclick="window.cardRegistry['${this.id}'].destroy()">✕</div>
+                    <div class="header-top"><div style="display:flex;align-items:center;"><span class="icon">🚇</span><span class="card-title">${this.stationInfo.staName} <small>(${this.stationInfo.lineName})</small></span></div><div style="font-size:0.8rem;opacity:0.8" class="update-time"></div></div>
                 </div>
                 <div class="card-content"><div class="status-msg">正在獲取列車資料...</div></div>`;
             document.getElementById('cards-container').appendChild(div);
             this.element = div;
             setTimeout(() => div.scrollIntoView({behavior:'smooth', block:'start'}), 100);
-            
             div.addEventListener('dragstart', () => div.classList.add('dragging'));
-            div.addEventListener('dragend', () => div.classList.remove('dragging'));
-
-            this.fetchData();
-            this.timer = setInterval(() => this.fetchData(), 30000);
+            div.addEventListener('dragend', () => { div.classList.remove('dragging'); div.setAttribute('draggable', 'false'); });
+            this.fetchData(); this.timer = setInterval(() => this.fetchData(), 30000);
         }
-
-        renderError(message) {
-            this.element.querySelector('.card-content').innerHTML = `<div class="status-msg error">${message}</div>`;
-        }
-        
+        renderError(message) { this.element.querySelector('.card-content').innerHTML = `<div class="status-msg error">${message}</div>`; }
         async fetchData() {
             this.element.querySelector('.update-time').innerText = '更新中...';
             try {
                 const response = await fetch(`${MTR_API}?line=${this.lineCode}&sta=${this.staCode}&lang=TC`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
-                
-                if (data.status === 0) {
-                    this.renderError(data.message || '服務現正暫停');
-                    return;
-                }
-
-                const schedule = data.data[`${this.lineCode}-${this.staCode}`];
-                this.render(schedule);
+                if (data.status === 0) { this.renderError(data.message || '服務現正暫停'); return; }
+                this.render(data.data[`${this.lineCode}-${this.staCode}`]);
                 this.element.querySelector('.update-time').innerText = '更新於 ' + new Date().toLocaleTimeString('zh-HK', {hour:'2-digit', minute:'2-digit'});
-
-            } catch (e) {
-                this.renderError('資料載入失敗，請稍後再試');
-                console.error(`MTR fetch failed for ${this.lineCode}-${this.staCode}:`, e);
-            }
+            } catch (e) { this.renderError('資料載入失敗，請稍後再試'); console.error(e); }
         }
-
         toggleTime(el) {
-            const timeSpan = el.querySelector('.eta-minutes');
-            if (!timeSpan) return;
+            const timeSpan = el.querySelector('.eta-minutes'); if (!timeSpan) return;
             const isMinView = timeSpan.innerText === timeSpan.dataset.min;
             timeSpan.innerText = isMinView ? timeSpan.dataset.time : timeSpan.dataset.min;
             timeSpan.classList.toggle('show-real-time', isMinView);
         }
-        
         _formatTrains(trains) {
             if (!trains || trains.length === 0) return '';
             return trains.map(train => {
                 const destName = mtrStationNames[train.dest] || train.dest;
                 const arrivalTime = new Date(train.time);
                 const diffMins = Math.round((arrivalTime - new Date()) / 60000);
-                
                 if (diffMins > 120 || diffMins < -5) return '';
-
                 const minStr = diffMins <= 0 ? '即將' : `${diffMins}分`;
                 const timeStr = arrivalTime.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
                 const platCircled = ['⓪','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'][parseInt(train.plat)] || `(${train.plat})`;
-
-                return `
-                    <div class="mtr-compact-eta" onclick="window.cardRegistry['${this.id}'].toggleTime(this)">
-                        <span class="eta-minutes ${diffMins <= 1 ? 'urgent' : ''}" data-min="${minStr}" data-time="${timeStr}">${minStr}</span>
-                        <span class="mtr-eta-details">${platCircled} ${destName}</span>
-                    </div>`;
+                return `<div class="mtr-compact-eta" onclick="window.cardRegistry['${this.id}'].toggleTime(this)"><span class="eta-minutes ${diffMins <= 1 ? 'urgent' : ''}" data-min="${minStr}" data-time="${timeStr}">${minStr}</span><span class="mtr-eta-details">${platCircled} ${destName}</span></div>`;
             }).join('');
         }
-
         render(data) {
             const contentEl = this.element.querySelector('.card-content');
-            if (!data || (!data.UP && !data.DOWN)) {
-                this.renderError('暫無班次資料');
-                return;
-            }
+            if (!data || (!data.UP && !data.DOWN)) { this.renderError('暫無班次資料'); return; }
             const upHtml = this._formatTrains(data.UP);
             const downHtml = this._formatTrains(data.DOWN);
-
             let finalHtml = '';
             if (upHtml) finalHtml += `<div class="mtr-direction-group">${upHtml}</div>`;
             if (downHtml) finalHtml += `<div class="mtr-direction-group">${downHtml}</div>`;
-            
-            if (!finalHtml) this.renderError('暫無班次資料');
-            else contentEl.innerHTML = finalHtml;
+            if (!finalHtml) this.renderError('暫無班次資料'); else contentEl.innerHTML = finalHtml;
         }
     }
 
-    // --- Class: MTR Line Card ---
     class MTRLineCard extends BaseCard {
         constructor(lineCode, id, saved, initialPin = null) {
             super();
-            this.id = id;
-            this.lineCode = lineCode;
+            this.id = id; this.lineCode = lineCode;
             this.lineInfo = allMtrLines.find(l => l.lineCode === lineCode);
             this.dir = saved ? saved.dir : 'UP';
-            // Supports both saved state and direct initial pin from search
             this.markedSeq = (saved ? saved.markedSeq : null) || initialPin; 
             this.filteredSeq = (saved ? saved.filteredSeq : null) || (initialPin ? initialPin : null);
-            this.element = null;
-            this.timer = null;
+            this.element = null; this.timer = null;
         }
-
         init() {
             document.getElementById('empty-state')?.remove();
             const div = document.createElement('div');
-            div.className = 'card mtr-card';
-            div.id = this.id; div.setAttribute('draggable', 'true');
-            
+            div.setAttribute('draggable', 'false');
+            div.className = 'card mtr-card'; div.id = this.id; 
             const terminals = LINE_TERMINALS[this.lineCode];
-            
             div.innerHTML = `
                 <div class="card-header">
-                    <div class="drag-handle">≡</div><div class="close-card-btn" onclick="window.cardRegistry['${this.id}'].destroy()">✕</div>
-                    <div class="header-top">
-                        <div style="display:flex;align-items:center;">
-                            <span class="icon">🚇</span>
-                            <span class="card-title">${this.lineInfo.lineName}</span>
-                        </div>
-                        <div style="font-size:0.8rem;opacity:0.8" class="update-time"></div>
-                    </div>
-                    <div class="direction-switch">
-                        <span class="dir-opt btn-up" onclick="window.cardRegistry['${this.id}'].switchDir('UP')">往 ${terminals.UP}</span>
-                        <span class="dir-opt btn-down" onclick="window.cardRegistry['${this.id}'].switchDir('DOWN')">往 ${terminals.DOWN}</span>
-                    </div>
+                    <div class="drag-handle" 
+                         onmousedown="this.closest('.card').setAttribute('draggable', 'true')" 
+                         onmouseup="this.closest('.card').setAttribute('draggable', 'false')">≡</div>
+                    <div class="close-card-btn" onclick="window.cardRegistry['${this.id}'].destroy()">✕</div>
+                    <div class="header-top"><div style="display:flex;align-items:center;"><span class="icon">🚇</span><span class="card-title">${this.lineInfo.lineName}</span></div><div style="font-size:0.8rem;opacity:0.8" class="update-time"></div></div><div class="direction-switch"><span class="dir-opt btn-up" onclick="window.cardRegistry['${this.id}'].switchDir('UP')">往 ${terminals.UP}</span><span class="dir-opt btn-down" onclick="window.cardRegistry['${this.id}'].switchDir('DOWN')">往 ${terminals.DOWN}</span></div>
                 </div>
                 <div class="card-content"><div class="status-msg">正在獲取整條綫列車資料...</div></div>`;
             document.getElementById('cards-container').appendChild(div);
             this.element = div;
-            
             div.addEventListener('dragstart', () => div.classList.add('dragging'));
-            div.addEventListener('dragend', () => div.classList.remove('dragging'));
-            
-            this.updateUI();
-            this.fetchData();
-            this.timer = setInterval(() => this.fetchData(), 30000);
+            div.addEventListener('dragend', () => { div.classList.remove('dragging'); div.setAttribute('draggable', 'false'); });
+            this.updateUI(); this.fetchData(); this.timer = setInterval(() => this.fetchData(), 30000);
             setTimeout(() => div.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
         }
-
-        switchDir(dir) {
-            if (this.dir === dir) return;
-            this.dir = dir;
-            // Clear filtering when switching direction to show full line
-            this.filteredSeq = null; 
-            this.markedSeq = null;
-            this.updateUI();
-            this.fetchData();
-        }
-
-        updateUI() {
-            this.element.querySelector('.btn-up').classList.toggle('active', this.dir === 'UP');
-            this.element.querySelector('.btn-down').classList.toggle('active', this.dir === 'DOWN');
-        }
-
-        renderError(message) {
-            this.element.querySelector('.card-content').innerHTML = `<div class="status-msg error">${message}</div>`;
-        }
-        
-        // This function handles the "row" click to toggle time
+        switchDir(dir) { if (this.dir === dir) return; this.dir = dir; this.filteredSeq = null; this.markedSeq = null; this.updateUI(); this.fetchData(); }
+        updateUI() { this.element.querySelector('.btn-up').classList.toggle('active', this.dir === 'UP'); this.element.querySelector('.btn-down').classList.toggle('active', this.dir === 'DOWN'); }
+        renderError(message) { this.element.querySelector('.card-content').innerHTML = `<div class="status-msg error">${message}</div>`; }
         toggleMode(el) {
             const isTime = el.classList.toggle('mode-time');
-            el.querySelectorAll('.eta-minutes').forEach(s => { 
-                s.innerText = s.dataset[isTime ? 'time' : 'min']; 
-                s.classList.toggle('show-real-time', isTime);
-            });
+            el.querySelectorAll('.eta-minutes').forEach(s => { s.innerText = s.dataset[isTime ? 'time' : 'min']; s.classList.toggle('show-real-time', isTime); });
         }
-
         pin(e, staCode) {
             e.stopPropagation();
-            if (this.filteredSeq === staCode) {
-                this.filteredSeq = null; this.markedSeq = null;
-            } else if (this.markedSeq === staCode) {
-                this.filteredSeq = staCode;
-            } else {
-                this.markedSeq = staCode; this.filteredSeq = null;
-            }
+            if (this.filteredSeq === staCode) { this.filteredSeq = null; this.markedSeq = null; }
+            else if (this.markedSeq === staCode) { this.filteredSeq = staCode; }
+            else { this.markedSeq = staCode; this.filteredSeq = null; }
             this.applyVisual();
         }
-
         applyVisual() {
             this.element.querySelectorAll('.schedule-item').forEach(el => {
-                const staCode = el.dataset.stacode;
-                const span = el.querySelector('.dest-seq');
-                const serial = el.dataset.serial;
-
+                const staCode = el.dataset.stacode; const span = el.querySelector('.dest-seq'); const serial = el.dataset.serial;
                 el.classList.toggle('hidden-row', this.filteredSeq !== null && this.filteredSeq !== staCode);
                 el.classList.toggle('no-border', this.filteredSeq === staCode);
-
-                if (this.markedSeq === staCode) {
-                    span.innerHTML = '<span class="pin-icon">📌</span>';
-                    span.style.opacity = '1';
-                } else {
-                    span.innerHTML = serial;
-                    span.style.opacity = '';
-                }
+                if (this.markedSeq === staCode) { span.innerHTML = '<span class="pin-icon">📌</span>'; span.style.opacity = '1'; } else { span.innerHTML = serial; span.style.opacity = ''; }
             });
-            
-            if (this.filteredSeq) {
-                const targetEl = this.element.querySelector(`.schedule-item[data-stacode="${this.filteredSeq}"]`);
-                if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
+            if (this.filteredSeq) { const targetEl = this.element.querySelector(`.schedule-item[data-stacode="${this.filteredSeq}"]`); if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
         }
-
         async fetchData() {
             this.element.querySelector('.update-time').innerText = '更新中...';
-            // Use the strictly ordered station list
             const stationList = this.lineInfo.orderedStations;
-
             try {
-                const responses = await Promise.all(
-                    stationList.map(s => fetch(`${MTR_API}?line=${this.lineCode}&sta=${s.c}&lang=TC`).then(res => res.json()))
-                );
-                const allData = responses.map((data, i) => ({
-                    staCode: stationList[i].c,
-                    schedule: data.data ? data.data[`${this.lineCode}-${stationList[i].c}`] : null,
-                }));
-                
+                const responses = await Promise.all(stationList.map(s => fetch(`${MTR_API}?line=${this.lineCode}&sta=${s.c}&lang=TC`).then(res => res.json())));
+                const allData = responses.map((data, i) => ({ staCode: stationList[i].c, schedule: data.data ? data.data[`${this.lineCode}-${stationList[i].c}`] : null, }));
                 this.render(allData);
                 this.element.querySelector('.update-time').innerText = '更新於 ' + new Date().toLocaleTimeString('zh-HK', {hour:'2-digit', minute:'2-digit'});
-
-            } catch (e) {
-                this.renderError('全綫資料載入失敗');
-                console.error(`MTR Line fetch failed for ${this.lineCode}:`, e);
-            }
+            } catch (e) { this.renderError('全綫資料載入失敗'); console.error(e); }
         }
-
         render(data) {
             const contentEl = this.element.querySelector('.card-content');
             let finalHtml = '';
-            
-            // For DOWN direction, reverse the data array to show from terminal to start
-            if (this.dir === 'DOWN') {
-                data.reverse();
-            }
-            
-            // Build HTML with Serial Numbers
+            if (this.dir === 'DOWN') data.reverse();
             let serial = 1;
             for (const stationData of data) {
                 const { staCode, schedule } = stationData;
                 let trainHtml = '';
-
-                // Only process trains if schedule exists and is valid
                 if (schedule) {
                     const trains = schedule[this.dir] || [];
                     trainHtml = trains.map(train => {
                         if (this.lineCode === 'EAL' && this.dir === 'UP' && !['LOW', 'LMC', 'SHT', 'TAP', 'FAN', 'SHS'].includes(train.dest)) return '';
                         if (this.lineCode === 'TKL' && this.dir === 'UP' && !['POA', 'LHP'].includes(train.dest)) return '';
-                        
                         const destName = mtrStationNames[train.dest] || train.dest;
                         const arrivalTime = new Date(train.time);
                         const diffMins = Math.round((arrivalTime - new Date()) / 60000);
-                        
-                        // Filter Logic: Ghost trains (>120 mins) or passed trains (< -5 mins)
                         if (diffMins > 120 || diffMins < -5) return '';
-
                         const minStr = diffMins <= 0 ? '即將' : `${diffMins}分`;
                         const timeStr = arrivalTime.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
                         const platCircled = ['⓪','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'][parseInt(train.plat)] || `(${train.plat})`;
-
-                        return `
-                            <div class="mtr-compact-eta">
-                                <span class="eta-minutes ${diffMins <= 1 ? 'urgent' : ''}" data-min="${minStr}" data-time="${timeStr}">${minStr}</span>
-                                <span class="mtr-eta-details">${platCircled} ${destName}</span>
-                            </div>`;
+                        return `<div class="mtr-compact-eta"><span class="eta-minutes ${diffMins <= 1 ? 'urgent' : ''}" data-min="${minStr}" data-time="${timeStr}">${minStr}</span><span class="mtr-eta-details">${platCircled} ${destName}</span></div>`;
                     }).join('');
                 }
-
-                // If no valid train info, show "No Schedule" text but KEEP ROW
-                if (!trainHtml.trim()) {
-                    trainHtml = '<span class="no-schedule">暫無班次</span>';
-                }
-
-                finalHtml += `
-                    <div class="schedule-item" data-stacode="${staCode}" data-serial="${serial}" onclick="window.cardRegistry['${this.id}'].toggleMode(this)">
-                        <div class="stop-info">
-                            <span class="dest-seq" onclick="window.cardRegistry['${this.id}'].pin(event, '${staCode}')">${serial}</span>
-                            <span class="dest-name">${mtrStationNames[staCode]}</span>
-                        </div>
-                        <div class="eta-container">${trainHtml}</div>
-                    </div>`;
+                if (!trainHtml.trim()) trainHtml = '<span class="no-schedule">暫無班次</span>';
+                finalHtml += `<div class="schedule-item" data-stacode="${staCode}" data-serial="${serial}" onclick="window.cardRegistry['${this.id}'].toggleMode(this)"><div class="stop-info"><span class="dest-seq" onclick="window.cardRegistry['${this.id}'].pin(event, '${staCode}')">${serial}</span><span class="dest-name">${mtrStationNames[staCode]}</span></div><div class="eta-container">${trainHtml}</div></div>`;
                 serial++;
             }
-            
             contentEl.innerHTML = finalHtml;
             this.applyVisual();
         }
     }
 
-
-    // --- Class: Bus Route Card ---
     class BusRouteCard extends BaseCard {
         constructor(route, id, saved, company) {
             super();
@@ -1068,40 +973,35 @@
             this.filteredSeq = saved ? saved.filteredSeq : null;
             this.currentDestName = saved ? saved.destName : '';
             this.element = null; this.timer = null; this.currentStops = [];
-            this.nlbIds = {};
-            this.lastRenderedDir = null;
+            this.nlbIds = {}; this.lastRenderedDir = null;
         }
-        
         init() {
             document.getElementById('empty-state')?.remove();
             let cardClass = '', coName = '九巴';
             if (this.company === 'CTB') { cardClass = 'ctb-card'; coName = '城巴'; }
             else if (this.company === 'NLB') { cardClass = 'nlb-card'; coName = '嶼巴'; }
-
             const div = document.createElement('div');
-            div.className = `card ${cardClass}`;
-            div.id = this.id; div.setAttribute('draggable', 'true');
+            div.setAttribute('draggable', 'false');
+            div.className = `card ${cardClass}`; div.id = this.id; 
             div.innerHTML = `
                 <div class="card-header">
-                    <div class="drag-handle">≡</div><div class="close-card-btn" onclick="window.cardRegistry['${this.id}'].destroy()">✕</div>
-                    <div class="header-top"><div style="display:flex;align-items:center;"><span class="icon">🚌</span><span class="card-title">${coName} ${this.route}</span></div><div style="font-size:0.8rem;opacity:0.8" class="update-time"></div></div>
-                    <div class="direction-switch"><span class="dir-opt btn-out" onclick="window.cardRegistry['${this.id}'].switchDir('outbound')">往 ...</span><span class="dir-opt btn-in" onclick="window.cardRegistry['${this.id}'].switchDir('inbound')">往 ...</span></div>
+                    <div class="drag-handle" 
+                         onmousedown="this.closest('.card').setAttribute('draggable', 'true')" 
+                         onmouseup="this.closest('.card').setAttribute('draggable', 'false')">≡</div>
+                    <div class="close-card-btn" onclick="window.cardRegistry['${this.id}'].destroy()">✕</div>
+                    <div class="header-top"><div style="display:flex;align-items:center;"><span class="icon">🚌</span><span class="card-title">${coName} ${this.route}</span></div><div style="font-size:0.8rem;opacity:0.8" class="update-time"></div></div><div class="direction-switch"><span class="dir-opt btn-out" onclick="window.cardRegistry['${this.id}'].switchDir('outbound')">往 ...</span><span class="dir-opt btn-in" onclick="window.cardRegistry['${this.id}'].switchDir('inbound')">往 ...</span></div>
                 </div>
                 <div class="card-content"><div class="status-msg">正在分析路線資料...</div></div>`;
             document.getElementById('cards-container').appendChild(div);
             this.element = div;
             setTimeout(() => div.scrollIntoView({behavior:'smooth', block:'start'}), 100);
-            
             div.addEventListener('dragstart', () => div.classList.add('dragging'));
-            div.addEventListener('dragend', () => div.classList.remove('dragging'));
-
+            div.addEventListener('dragend', () => { div.classList.remove('dragging'); div.setAttribute('draggable', 'false'); });
             this.updateUI();
             this.fetchBoundaries().then(() => { this.fetchData(); this.timer = setInterval(() => this.fetchData(), 30000); });
         }
-
         async fetchBoundaries() {
             let outStops = [], inStops = [], outName = '', inName = '';
-
             if (this.company === 'NLB') {
                 const variants = nlbRouteMap[this.route] || [];
                 const processNLB = async (variant, dirKey) => {
@@ -1117,85 +1017,52 @@
                 [outStops, inStops] = await Promise.all([processNLB(variants[0], 'outbound'), processNLB(variants[1], 'inbound')]);
                 outName = variants[0] ? variants[0].routeName_c.split('>')[1]?.trim() || variants[0].routeName_c : '';
                 inName = variants[1] ? variants[1].routeName_c.split('>')[1]?.trim() || variants[1].routeName_c : '';
-            } 
-            else {
+            } else {
                 const api = this.company === 'KMB' ? KMB_API : CTB_API;
                 const getStops = async (d) => { try { return (await (await fetch(`${api}/route-stop/${this.company==='KMB'?'': 'CTB/'}${this.route}/${d}${this.company==='KMB'?'/1':''}`)).json()).data; } catch{ return []; } };
                 [outStops, inStops] = await Promise.all([getStops('outbound'), getStops('inbound')]);
                 const getName = async (list) => list.length ? await getStopName(list[list.length-1].stop, this.company) : '';
                 [outName, inName] = await Promise.all([getName(outStops), getName(inStops)]);
             }
-
             this.element.querySelector('.btn-out').innerText = outStops.length ? `往 ${outName || '去程'}` : '去程 (無資料)';
             this.element.querySelector('.btn-in').innerText = inStops.length ? `往 ${inName || '回程'}` : '回程 (無資料)';
             this.element.querySelector('.btn-in').style.display = inStops.length ? 'block' : 'none';
             if(!inStops.length && outStops.length) this.element.querySelector('.btn-out').innerText += ' (循環線)';
-
             this.destMap = { outbound: outName || '去程', inbound: inName || '回程' };
             this.currentDestName = this.destMap[this.dir];
             this.stopLists = { outbound: outStops, inbound: inStops };
         }
-
-        switchDir(dir) {
-            if(this.dir === dir) return;
-            this.dir = dir; this.markedSeq = null; this.filteredSeq = null;
-            this.currentDestName = this.destMap[dir];
-            this.updateUI(); this.fetchData();
-        }
-        
-        updateUI() {
-            this.element.querySelector('.btn-out').classList.toggle('active', this.dir === 'outbound');
-            this.element.querySelector('.btn-in').classList.toggle('active', this.dir === 'inbound');
-        }
-
+        switchDir(dir) { if(this.dir === dir) return; this.dir = dir; this.markedSeq = null; this.filteredSeq = null; this.currentDestName = this.destMap[dir]; this.updateUI(); this.fetchData(); }
+        updateUI() { this.element.querySelector('.btn-out').classList.toggle('active', this.dir === 'outbound'); this.element.querySelector('.btn-in').classList.toggle('active', this.dir === 'inbound'); }
         async fetchData() {
             const listEl = this.element.querySelector('.card-content');
             this.element.querySelector('.update-time').innerText = '更新中...';
             if(listEl.innerText.includes('暫無')) listEl.classList.add('fading');
-            
             try {
                 this.currentStops = this.stopLists?.[this.dir];
                 if (!this.currentStops?.length) await this.fetchBoundaries();
                 this.currentStops = this.stopLists?.[this.dir];
                 if (!this.currentStops?.length) { listEl.innerHTML = '<div class="status-msg">此方向無車站資料</div>'; return listEl.classList.remove('fading'); }
-                
                 const needsRender = this.dir !== this.lastRenderedDir || !this.element.querySelector('.schedule-item');
                 let rows = [];
-
                 if (this.company === 'NLB') {
-                    if (needsRender) {
-                        this.render(this.currentStops.map(s => ({ seq: s.seq, name: s.name, etas: [] })));
-                        this.lastRenderedDir = this.dir;
-                    }
+                    if (needsRender) { this.render(this.currentStops.map(s => ({ seq: s.seq, name: s.name, etas: [] }))); this.lastRenderedDir = this.dir; }
                     const routeId = this.nlbIds[this.dir];
-                    this.currentStops.forEach(s => {
-                         fetch(`${NLB_API}/stop.php?action=estimatedArrivals&routeId=${routeId}&stopId=${s.stop}&language=zh`)
-                            .then(r => r.json()).then(data => this.updateRow(s.seq, (data.estimatedArrivals || []).map(e => ({ eta: e.estimatedArrivalTime })).sort((a,b)=>new Date(a.eta)-new Date(b.eta))))
-                            .catch(() => this.updateRow(s.seq, null));
-                    });
+                    this.currentStops.forEach(s => { fetch(`${NLB_API}/stop.php?action=estimatedArrivals&routeId=${routeId}&stopId=${s.stop}&language=zh`).then(r => r.json()).then(data => this.updateRow(s.seq, (data.estimatedArrivals || []).map(e => ({ eta: e.estimatedArrivalTime })).sort((a,b)=>new Date(a.eta)-new Date(b.eta)))).catch(() => this.updateRow(s.seq, null)); });
                 } else {
                     if (this.company === 'KMB') {
                         const allEtas = (await (await fetch(`${KMB_API}/route-eta/${this.route}/1`)).json()).data || [];
                         const dirCode = this.dir === 'outbound' ? 'O' : 'I';
-                        rows = await Promise.all(this.currentStops.map(async s => ({
-                            seq: parseInt(s.seq), name: await getStopName(s.stop, 'KMB'),
-                            etas: allEtas.filter(e => e.seq === parseInt(s.seq) && e.dir === dirCode && e.eta).sort((a,b)=>new Date(a.eta)-new Date(b.eta))
-                        })));
-                    } else { // CTB
-                        rows = await Promise.all(this.currentStops.map(async s => {
-                            const data = (await (await fetch(`${CTB_API}/eta/CTB/${s.stop}/${this.route}`)).json()).data || [];
-                            return { seq: parseInt(s.seq), name: await getStopName(s.stop, 'CTB'), etas: data.filter(e => e.dir === (this.dir === 'outbound' ? 'O' : 'I') && e.eta).sort((a,b)=>new Date(a.eta)-new Date(b.eta)) };
-                        }));
+                        rows = await Promise.all(this.currentStops.map(async s => ({ seq: parseInt(s.seq), name: await getStopName(s.stop, 'KMB'), etas: allEtas.filter(e => e.seq === parseInt(s.seq) && e.dir === dirCode && e.eta).sort((a,b)=>new Date(a.eta)-new Date(b.eta)) })));
+                    } else { 
+                        rows = await Promise.all(this.currentStops.map(async s => { const data = (await (await fetch(`${CTB_API}/eta/CTB/${s.stop}/${this.route}`)).json()).data || []; return { seq: parseInt(s.seq), name: await getStopName(s.stop, 'CTB'), etas: data.filter(e => e.dir === (this.dir === 'outbound' ? 'O' : 'I') && e.eta).sort((a,b)=>new Date(a.eta)-new Date(b.eta)) }; }));
                     }
-                    this.render(rows);
-                    this.lastRenderedDir = this.dir;
+                    this.render(rows); this.lastRenderedDir = this.dir;
                 }
-                
                 this.element.querySelector('.update-time').innerText = '更新於 ' + new Date().toLocaleTimeString('zh-HK', {hour:'2-digit', minute:'2-digit'});
             } catch (e) { listEl.innerHTML = '<div class="status-msg error">資料載入失敗</div>'; console.error(e); }
             listEl.classList.remove('fading');
         }
-        
         generateTimeHtml(etas) {
             if (!etas || !etas.length) return '<span style="color:var(--text-sub);font-size:0.85rem;">暫無班次</span>';
             return etas.slice(0,3).map(e => {
@@ -1205,48 +1072,26 @@
                 return `<span class="eta-minutes ${diff <= 1 ? 'urgent' : ''}" data-min="${minStr}" data-time="${timeStr}" style="margin-left:4px;">${minStr}</span>`;
             }).join('');
         }
-
         render(rows) {
             const el = this.element.querySelector('.card-content');
             if(!rows.length) { el.innerHTML = '<div class="status-msg">暫無資料</div>'; return; }
-            el.innerHTML = rows.sort((a,b)=>a.seq-b.seq).map(r => `
-                <div class="schedule-item" data-seq="${r.seq}" onclick="window.cardRegistry['${this.id}'].toggleMode(this)">
-                    <div class="stop-info"><span class="dest-seq" onclick="window.cardRegistry['${this.id}'].pin(event,${r.seq})">${r.seq}</span><span class="dest-name">${r.name}</span></div>
-                    <div class="eta-container">${this.generateTimeHtml(r.etas)}</div>
-                </div>`).join('');
+            el.innerHTML = rows.sort((a,b)=>a.seq-b.seq).map(r => `<div class="schedule-item" data-seq="${r.seq}" onclick="window.cardRegistry['${this.id}'].toggleMode(this)"><div class="stop-info"><span class="dest-seq" onclick="window.cardRegistry['${this.id}'].pin(event,${r.seq})">${r.seq}</span><span class="dest-name">${r.name}</span></div><div class="eta-container">${this.generateTimeHtml(r.etas)}</div></div>`).join('');
             this.applyVisual();
         }
-        
         updateRow(seq, etas) {
             const container = this.element.querySelector(`.schedule-item[data-seq="${seq}"] .eta-container`);
             if (!container) return;
             container.innerHTML = this.generateTimeHtml(etas);
             if (container.parentElement.classList.contains('mode-time')) this.toggleMode(container.parentElement, true);
         }
-        
         toggleMode(el, forceToMin = false) {
             const isTime = el.classList.contains('mode-time');
-            if (forceToMin && !isTime) return; // Already in min mode
-            if (forceToMin && isTime) {
-                 el.classList.remove('mode-time');
-            } else {
-                 el.classList.toggle('mode-time');
-            }
+            if (forceToMin && !isTime) return;
+            if (forceToMin && isTime) { el.classList.remove('mode-time'); } else { el.classList.toggle('mode-time'); }
             const shouldBeTime = el.classList.contains('mode-time');
-
-            el.querySelectorAll('.eta-minutes').forEach(s => { 
-                s.innerText = s.dataset[shouldBeTime ? 'time' : 'min']; 
-                s.classList.toggle('show-real-time', shouldBeTime); 
-            });
+            el.querySelectorAll('.eta-minutes').forEach(s => { s.innerText = s.dataset[shouldBeTime ? 'time' : 'min']; s.classList.toggle('show-real-time', shouldBeTime); });
         }
-
-        pin(e, seq) { e.stopPropagation();
-            if(this.filteredSeq === seq) { this.filteredSeq = null; this.markedSeq = null; }
-            else if(this.markedSeq === seq) { this.filteredSeq = seq; }
-            else { this.markedSeq = seq; this.filteredSeq = null; }
-            this.applyVisual();
-        }
-
+        pin(e, seq) { e.stopPropagation(); if(this.filteredSeq === seq) { this.filteredSeq = null; this.markedSeq = null; } else if(this.markedSeq === seq) { this.filteredSeq = seq; } else { this.markedSeq = seq; this.filteredSeq = null; } this.applyVisual(); }
         applyVisual() {
             this.element.querySelectorAll('.schedule-item').forEach(el => {
                 const seq = parseInt(el.dataset.seq), span = el.querySelector('.dest-seq');
@@ -1257,14 +1102,13 @@
         }
     }
 
-    // --- Helpers ---
     function getDragAfterElement(container, y, selector) {
         return [...container.querySelectorAll(`${selector}:not(.dragging)`)].reduce((closest, child) => {
             const offset = y - child.getBoundingClientRect().top - child.getBoundingClientRect().height / 2;
             return (offset < 0 && offset > closest.offset) ? { offset, element: child } : closest;
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
-
+    
     async function preloadAllRoutes() {
         try {
             const [k, c, n] = await Promise.all([
@@ -1272,46 +1116,18 @@
                 fetch(`${CTB_API}/route/CTB`).then(r=>r.json()).catch(()=>({data:[]})),
                 fetch(`${NLB_API}/route.php?action=list`).then(r=>r.json()).catch(()=>({routes:[]}))
             ]);
-            
-            nlbRouteMap = (n.routes || []).reduce((acc, r) => {
-                if(!acc[r.routeNo]) acc[r.routeNo] = [];
-                acc[r.routeNo].push(r); return acc;
-            }, {});
-
-            const nlbList = Object.keys(nlbRouteMap).map(rNo => {
-                const parts = nlbRouteMap[rNo][0].routeName_c.split('>');
-                return { route: rNo, orig: parts[0]?.trim() || '?', dest: parts[1]?.trim() || '?', co: 'NLB' };
-            });
-
+            nlbRouteMap = (n.routes || []).reduce((acc, r) => { if(!acc[r.routeNo]) acc[r.routeNo] = []; acc[r.routeNo].push(r); return acc; }, {});
+            const nlbList = Object.keys(nlbRouteMap).map(rNo => { const parts = nlbRouteMap[rNo][0].routeName_c.split('>'); return { route: rNo, orig: parts[0]?.trim() || '?', dest: parts[1]?.trim() || '?', co: 'NLB' }; });
             const seen = new Set();
-            allRoutesDB = [...(k.data||[]).map(r=>({route:r.route,orig:r.orig_tc,dest:r.dest_tc,co:'KMB'})),
-                           ...(c.data||[]).map(r=>({route:r.route,orig:r.orig_tc,dest:r.dest_tc,co:'CTB'})),
-                           ...nlbList]
-                .filter(r => seen.has(r.route+'_'+r.co) ? false : seen.add(r.route+'_'+r.co))
-                .sort((a,b) => (parseInt(a.route.replace(/\D/g,''))||0) - (parseInt(b.route.replace(/\D/g,''))||0) || a.route.localeCompare(b.route));
+            allRoutesDB = [...(k.data||[]).map(r=>({route:r.route,orig:r.orig_tc,dest:r.dest_tc,co:'KMB'})), ...(c.data||[]).map(r=>({route:r.route,orig:r.orig_tc,dest:r.dest_tc,co:'CTB'})), ...nlbList].filter(r => seen.has(r.route+'_'+r.co) ? false : seen.add(r.route+'_'+r.co)).sort((a,b) => (parseInt(a.route.replace(/\D/g,''))||0) - (parseInt(b.route.replace(/\D/g,''))||0) || a.route.localeCompare(b.route));
         } catch (e) { console.error("Failed to preload routes", e); }
     }
-
     async function getStopName(id, co) {
-        const key = `${co}_${id}`;
-        if (stopCache[key]) return stopCache[key];
-        try {
-            const d = await (await fetch(`${co==='KMB'?KMB_API:CTB_API}/stop/${id}`)).json();
-            return stopCache[key] = d.data.name_tc;
-        } catch { return '未知車站'; }
+        const key = `${co}_${id}`; if (stopCache[key]) return stopCache[key];
+        try { const d = await (await fetch(`${co==='KMB'?KMB_API:CTB_API}/stop/${id}`)).json(); return stopCache[key] = d.data.name_tc; } catch { return '未知車站'; }
     }
-
-    function toggleDarkMode() {
-        const on = document.getElementById('dm-toggle').checked;
-        document.body.classList.toggle('dark-mode', on);
-        localStorage.setItem('darkMode', on ? 'enabled' : 'disabled');
-    }
-    function initDarkMode() {
-        const m = localStorage.getItem('darkMode');
-        if (m === 'enabled' || (!m && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.body.classList.add('dark-mode'); document.getElementById('dm-toggle').checked = true;
-        }
-    }
+    function toggleDarkMode() { const on = document.getElementById('dm-toggle').checked; document.body.classList.toggle('dark-mode', on); localStorage.setItem('darkMode', on ? 'enabled' : 'disabled'); }
+    function initDarkMode() { const m = localStorage.getItem('darkMode'); if (m === 'enabled' || (!m && window.matchMedia('(prefers-color-scheme: dark)').matches)) { document.body.classList.add('dark-mode'); document.getElementById('dm-toggle').checked = true; } }
 </script>
 </body>
 </html>
