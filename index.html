@@ -8,10 +8,10 @@
     <meta name="apple-mobile-web-app-title" content="巴士班次">
     
     <!-- Icon -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23E3001B' rx='120'/%3E%3Ctext x='50%25' y='50%25' font-size='280' text-anchor='middle' dy='.35em' dominant-baseline='middle' fill='white'%3EKMB%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23E3001B' rx='120'/%3E%3Ctext x='50%25' y='50%25' font-size='280' text-anchor='middle' dy='.35em' dominant-baseline='middle' fill='white'%3EHK%3C/text%3E%3C/svg%3E">
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚌%3C/text%3E%3C/svg%3E">
 
-    <title>九巴班次查詢</title>
+    <title>香港巴士班次查詢</title>
     <style>
         :root {
             --bg-color: #F2F2F7;
@@ -19,6 +19,7 @@
             --text-main: #1C1C1E;
             --text-sub: #8E8E93;
             --kmb-red: #E3001B;
+            --ctb-yellow: #F9D300;
             --accent: #007AFF;
             --separator: #E5E5EA;
             --sidebar-width: 280px;
@@ -30,6 +31,7 @@
             --text-main: #FFFFFF;
             --text-sub: #98989D;
             --separator: #38383A;
+            --ctb-yellow: #D1B100; /* Darker yellow for dark mode */
         }
 
         * { -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -94,10 +96,11 @@
             position: absolute; top: 110%; left: 0; right: 0;
             background: var(--card-bg); border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            max-height: 0; overflow-y: auto; overflow-x: hidden;
+            max-height: 300px; overflow-y: auto; overflow-x: hidden;
             transition: max-height 0.2s ease-out; z-index: 1000;
+            display: none;
         }
-        .suggestions-list.show { max-height: 300px; border: 1px solid rgba(0,0,0,0.05); }
+        .suggestions-list.show { display: block; border: 1px solid rgba(0,0,0,0.05); }
 
         .suggestion-item {
             padding: 12px 16px; border-bottom: 1px solid var(--separator);
@@ -107,17 +110,27 @@
         .suggestion-item:active { background: rgba(0,0,0,0.05); }
         .suggestion-item:last-child { border-bottom: none; }
         
-        .sug-route { font-weight: 700; color: var(--kmb-red); font-size: 1.1rem; width: 60px; }
+        .sug-left { display: flex; align-items: center; gap: 8px; }
+        .sug-route { font-weight: 700; font-size: 1.1rem; }
         .sug-desc { font-size: 0.8rem; color: var(--text-sub); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
 
+        .co-badge {
+            font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; color: white; font-weight: bold; width: 40px; text-align: center;
+        }
+        .badge-kmb { background: var(--kmb-red); }
+        .badge-ctb { 
+            background: var(--ctb-yellow); 
+            color: white; /* Changed to white */
+            text-shadow: 0 0 2px rgba(0,0,0,0.3); /* Added shadow for readability on yellow */
+        }
+
         .search-btn {
-            padding: 0 16px; background: var(--kmb-red); color: white;
+            padding: 0 16px; background: var(--accent); color: white;
             border: none; border-radius: 12px; font-weight: 600; font-size: 1rem;
-            cursor: pointer; box-shadow: 0 2px 8px rgba(227, 0, 27, 0.3);
+            cursor: pointer; box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
             transition: opacity 0.2s; white-space: nowrap; height: 42px;
         }
         .search-btn:active { transform: scale(0.96); opacity: 0.9; }
-        .search-btn:disabled { background: var(--text-sub); cursor: not-allowed; box-shadow: none; }
 
         .content-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px 16px; scroll-behavior: smooth; display: flex; flex-direction: column;}
 
@@ -140,10 +153,29 @@
         }
 
         .card-header {
+            /* Default KMB Style */
             background: linear-gradient(135deg, #E3001B, #C20017);
             padding: 12px 16px; color: white;
             display: flex; flex-direction: column; gap: 8px;
             position: relative; padding-left: 40px;
+        }
+        
+        /* Citybus Specific Styles - White Text Version */
+        .ctb-card .card-header {
+            background: linear-gradient(135deg, var(--ctb-yellow), #E6C100);
+            color: white; /* Changed from blue to white */
+        }
+        /* Overrides to ensure white icons/text */
+        .ctb-card .close-card-btn { background: rgba(0, 0, 0, 0.1); color: white; }
+        .ctb-card .close-card-btn:active { background: rgba(0, 0, 0, 0.2); }
+        .ctb-card .drag-handle { color: rgba(255, 255, 255, 0.6); }
+        .ctb-card .dir-opt { color: rgba(255, 255, 255, 0.7); }
+        
+        /* Active Tab for Citybus */
+        .ctb-card .dir-opt.active { 
+            background: white; 
+            color: #C2A000; /* Dark Gold/Yellow text to avoid blue but keep brand feel */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
         }
 
         .drag-handle {
@@ -165,10 +197,10 @@
 
         .header-top { display: flex; align-items: center; padding-right: 40px; }
         .icon { font-size: 1.4rem; margin-right: 8px; }
-        .card-title { font-size: 1.3rem; font-weight: 800; }
+        .card-title { font-size: 1.3rem; font-weight: 800; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         
         .direction-switch {
-            display: flex; background: rgba(0, 0, 0, 0.2);
+            display: flex; background: rgba(0, 0, 0, 0.1);
             padding: 3px; border-radius: 8px; margin-top: 4px;
         }
         
@@ -234,7 +266,7 @@
         }
         .add-circle-btn {
             width: 56px; height: 56px; border-radius: 50%;
-            background: var(--card-bg); color: var(--kmb-red);
+            background: var(--card-bg); color: var(--accent);
             font-size: 2rem; border: none; cursor: pointer;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             display: flex; align-items: center; justify-content: center;
@@ -431,12 +463,16 @@
 </div>
 
 <script>
-    let kmbStopCache = {};
+    let stopCache = {}; // Generic stop cache for both KMB and CTB
     let allRoutesDB = []; 
     let validRouteSet = new Set();
     window.cardRegistry = {};
     let cardCounter = 0;
     let isEditMode = false;
+
+    // API Constants
+    const KMB_API_BASE = 'https://data.etabus.gov.hk/v1/transport/kmb';
+    const CTB_API_BASE = 'https://rt.data.gov.hk/v2/transport/citybus';
 
     document.addEventListener('DOMContentLoaded', () => {
         initDarkMode();
@@ -561,8 +597,9 @@
                     desc = `${item.data.length} 個路線組合`;
                 } else {
                     const d = item.data[0];
-                    if (d.destName) desc = `${d.route} 往 ${d.destName}`;
-                    else desc = `${d.route} ${d.dir==='outbound'?'去程':'回程'}`;
+                    const co = d.co || 'KMB';
+                    if (d.destName) desc = `[${co}] ${d.route} 往 ${d.destName}`;
+                    else desc = `[${co}] ${d.route} ${d.dir==='outbound'?'去程':'回程'}`;
                 }
 
                 return `
@@ -657,7 +694,7 @@
         let defaultName = "";
         if (cards.length > 0) {
             const firstCard = window.cardRegistry[cards[0].id];
-            defaultName = `九巴 ${firstCard.route}`;
+            defaultName = `${firstCard.company} ${firstCard.route}`;
             if (firstCard.currentDestName) defaultName += ` 往 ${firstCard.currentDestName}`;
         }
         if (cards.length > 1) defaultName = '我的通勤組合';
@@ -672,6 +709,7 @@
                 data.push({
                     route: obj.route,
                     dir: obj.dir,
+                    co: obj.company,
                     destName: obj.currentDestName, 
                     filteredSeq: obj.filteredSeq,
                     markedSeq: obj.markedSeq
@@ -686,7 +724,7 @@
         const item = list.find(x => x.id === id);
         if (!item) return;
         clearAllCards(false);
-        item.data.forEach(d => createCard(d.route, d));
+        item.data.forEach(d => createCard(d.route, d.co || 'KMB', d));
         toggleSidebar(false);
     }
 
@@ -745,8 +783,11 @@
         }
 
         list.innerHTML = matches.map(r => `
-            <div class="suggestion-item" onmousedown="selectSuggestion('${r.route}', '${inputEl.id}', '${suggestionId}', '${clearBtnId}')">
-                <span class="sug-route">${r.route}</span>
+            <div class="suggestion-item" onmousedown="selectSuggestion('${r.route}', '${r.co}', '${inputEl.id}', '${suggestionId}', '${clearBtnId}')">
+                <div class="sug-left">
+                    <span class="co-badge ${r.co === 'KMB' ? 'badge-kmb' : 'badge-ctb'}">${r.co === 'KMB' ? 'KMB' : '城巴'}</span>
+                    <span class="sug-route">${r.route}</span>
+                </div>
                 <span class="sug-desc">${r.orig} ⇄ ${r.dest}</span>
             </div>
         `).join('');
@@ -761,9 +802,10 @@
         input.focus();
     }
 
-    function selectSuggestion(route, inputId, suggestionId, clearBtnId) {
+    function selectSuggestion(route, co, inputId, suggestionId, clearBtnId) {
         const input = document.getElementById(inputId);
         input.value = route;
+        input.setAttribute('data-selected-co', co); // Store selected company
         document.getElementById(suggestionId).classList.remove('show');
         
         if (inputId === 'route-input') searchTopRoute();
@@ -784,17 +826,27 @@
         const input = inputEl.value.trim().toUpperCase();
         if (!input) return;
         
-        // 檢查有效性，無效則搖晃
-        if (validRouteSet.size > 0 && !validRouteSet.has(input)) { 
-            triggerShake('route-input'); 
-            return; 
-        }
+        let co = inputEl.getAttribute('data-selected-co');
         
+        // Check if route exists in DB
+        const matches = allRoutesDB.filter(r => r.route === input);
+        if (matches.length === 0) {
+             triggerShake('route-input'); return;
+        }
+
+        // If not selected from list (typed and enter), pick first or all? 
+        // Logic: if company not set, and multiple matches, maybe default to KMB or add both?
+        // Let's add the first match found if user typed manually.
+        if (!co) {
+            co = matches[0].co;
+        }
+
         inputEl.blur(); 
+        inputEl.removeAttribute('data-selected-co');
         document.getElementById('suggestions').classList.remove('show'); 
         
         clearAllCards(false);
-        createCard(input);
+        createCard(input, co);
     }
 
     // Bottom Add (Accumulate)
@@ -802,24 +854,26 @@
         const inputEl = document.getElementById('add-route-input');
         const input = inputEl.value.trim().toUpperCase();
         if (!input) return;
-        
-        // 檢查有效性，無效則搖晃
-        if (validRouteSet.size > 0 && !validRouteSet.has(input)) { 
-            triggerShake('add-route-input'); 
-            return; 
+
+        let co = inputEl.getAttribute('data-selected-co');
+        const matches = allRoutesDB.filter(r => r.route === input);
+        if (matches.length === 0) {
+             triggerShake('add-route-input'); return;
         }
+        if (!co) co = matches[0].co;
         
-        createCard(input);
+        createCard(input, co);
         
         // Reset bottom search
         inputEl.value = '';
+        inputEl.removeAttribute('data-selected-co');
         toggleAddSearch(false);
     }
     
-    function createCard(route, savedState = null) {
+    function createCard(route, company = 'KMB', savedState = null) {
         cardCounter++;
         const newCardId = `card-${cardCounter}`;
-        const newCard = new BusRouteCard(route, newCardId, savedState);
+        const newCard = new BusRouteCard(route, newCardId, savedState, company);
         window.cardRegistry[newCardId] = newCard;
         newCard.init();
         
@@ -828,9 +882,10 @@
     }
 
     class BusRouteCard {
-        constructor(route, containerId, savedState = null) {
+        constructor(route, containerId, savedState = null, company = 'KMB') {
             this.id = containerId; 
             this.route = route;
+            this.company = savedState ? (savedState.co || company) : company; // Handle legacy saved items
             this.dir = savedState ? savedState.dir : 'outbound';
             this.markedSeq = savedState ? savedState.markedSeq : null; 
             this.filteredSeq = savedState ? savedState.filteredSeq : null; 
@@ -846,8 +901,11 @@
 
             const div = document.createElement('div');
             div.className = 'card';
+            if (this.company === 'CTB') div.classList.add('ctb-card');
             div.id = this.id;
             div.setAttribute('draggable', 'true');
+            
+            const coName = this.company === 'KMB' ? '九巴' : '城巴';
 
             div.innerHTML = `
                 <div class="card-header">
@@ -857,7 +915,7 @@
                     <div class="header-top">
                         <div style="display:flex; align-items:center;">
                             <span class="icon">🚌</span>
-                            <span class="card-title">九巴 ${this.route}</span>
+                            <span class="card-title">${coName} ${this.route}</span>
                         </div>
                         <div style="font-size:0.8rem; opacity:0.8" class="update-time"></div>
                     </div>
@@ -928,32 +986,54 @@
         }
 
         async fetchRouteBoundaries() {
-            const [outStops, inStops] = await Promise.all([
-                getRouteStops(this.route, 'outbound'), 
-                getRouteStops(this.route, 'inbound')
-            ]);
+            let outStops = [], inStops = [];
+            
+            if (this.company === 'KMB') {
+                [outStops, inStops] = await Promise.all([
+                    getKmbRouteStops(this.route, 'outbound'), 
+                    getKmbRouteStops(this.route, 'inbound')
+                ]);
+            } else {
+                [outStops, inStops] = await Promise.all([
+                    getCtbRouteStops(this.route, 'outbound'),
+                    getCtbRouteStops(this.route, 'inbound')
+                ]);
+            }
+            
+            // Resolve last stop names for buttons
             let outName = '去程';
             let inName = '回程';
             const btnOut = this.element.querySelector('.btn-out');
             const btnIn = this.element.querySelector('.btn-in');
 
             if (outStops && outStops.length > 0) {
-                const name = await getStopName(outStops[outStops.length - 1].stop);
+                const lastStopId = outStops[outStops.length - 1].stop;
+                const name = await getStopName(lastStopId, this.company);
                 btnOut.innerText = `往 ${name}`;
                 outName = name;
             } else { btnOut.innerText = '去程 (無資料)'; }
 
             if (inStops && inStops.length > 0) {
-                const name = await getStopName(inStops[inStops.length - 1].stop);
+                const lastStopId = inStops[inStops.length - 1].stop;
+                const name = await getStopName(lastStopId, this.company);
                 btnIn.innerText = `往 ${name}`;
                 btnIn.style.display = 'block'; 
                 inName = name;
             } else {
                 btnIn.style.display = 'none'; 
-                btnOut.innerText += ' (循環線)';
+                if (outStops.length > 0) btnOut.innerText += ' (循環線)';
             }
             this.destMap = { outbound: outName, inbound: inName };
             this.currentDestName = this.destMap[this.dir];
+            
+            // Cache current stops for ETA usage
+            this.currentStops = this.dir === 'outbound' ? outStops : inStops;
+            
+            // Update UI immediately if possible? No wait for ETA.
+            if (!this.currentStops || this.currentStops.length === 0) {
+                 const listEl = this.element.querySelector('.card-content');
+                 listEl.innerHTML = '<div class="status-msg">此方向無車站資料</div>';
+            }
         }
 
         switchDirection(dir) {
@@ -962,7 +1042,11 @@
             this.markedSeq = null; this.filteredSeq = null; 
             if(this.destMap) this.currentDestName = this.destMap[dir];
             this.updateDirectionUI();
-            this.fetchBusData();
+            
+            // Re-fetch stops for new direction
+            this.fetchRouteBoundaries().then(() => {
+                this.fetchBusData();
+            });
         }
 
         async fetchBusData() {
@@ -972,23 +1056,64 @@
                 listEl.classList.add('fading');
             }
             timeEl.innerText = '更新中...';
+            
             try {
-                const routeStops = await getRouteStops(this.route, this.dir);
-                if (!routeStops || routeStops.length === 0) {
-                    listEl.innerHTML = '<div class="status-msg">此方向無車站資料</div>';
-                    listEl.classList.remove('fading'); return;
+                if (!this.currentStops || this.currentStops.length === 0) {
+                    // Try fetch boundaries if not set
+                     await this.fetchRouteBoundaries();
+                     if (!this.currentStops || this.currentStops.length === 0) {
+                         listEl.innerHTML = '<div class="status-msg">此方向無車站資料</div>';
+                         listEl.classList.remove('fading');
+                         return;
+                     }
                 }
-                const etaRes = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/route-eta/${this.route}/1`);
-                const etaData = await etaRes.json();
-                const allEtas = etaData.data || [];
-                const rows = await Promise.all(routeStops.map(async (stopInfo) => {
-                    const name = await getStopName(stopInfo.stop);
+                
+                let rows = [];
+
+                if (this.company === 'KMB') {
+                    // KMB Bulk ETA
+                    const etaRes = await fetch(`${KMB_API_BASE}/route-eta/${this.route}/1`);
+                    const etaData = await etaRes.json();
+                    const allEtas = etaData.data || [];
                     const apiDir = this.dir === 'outbound' ? 'O' : 'I';
-                    const stopEtas = allEtas.filter(e => 
-                        e.seq === parseInt(stopInfo.seq) && e.dir === apiDir && e.eta != null
-                    ).sort((a, b) => new Date(a.eta) - new Date(b.eta));
-                    return { seq: parseInt(stopInfo.seq), name: name, etas: stopEtas };
-                }));
+                    
+                    rows = await Promise.all(this.currentStops.map(async (stopInfo) => {
+                        const name = await getStopName(stopInfo.stop, 'KMB');
+                        const stopEtas = allEtas.filter(e => 
+                            e.seq === parseInt(stopInfo.seq) && e.dir === apiDir && e.eta != null
+                        ).sort((a, b) => new Date(a.eta) - new Date(b.eta));
+                        return { seq: parseInt(stopInfo.seq), name: name, etas: stopEtas };
+                    }));
+
+                } else {
+                    // CTB Individual ETA per stop (Promise.all)
+                    // CTB Route-Stop data has stops. Fetch name first for all to ensure UI looks good
+                    // But names are fetched in getStopName with cache.
+                    
+                    const promises = this.currentStops.map(async (stopInfo) => {
+                         const name = await getStopName(stopInfo.stop, 'CTB');
+                         
+                         // Fetch ETA
+                         let stopEtas = [];
+                         try {
+                             const url = `${CTB_API_BASE}/eta/CTB/${stopInfo.stop}/${this.route}`;
+                             const res = await fetch(url);
+                             const json = await res.json();
+                             if (json.data) {
+                                 // data contains all etas for this stop-route. 
+                                 // Need to filter direction. CTB returns dir "I" or "O".
+                                 // this.dir is 'outbound' or 'inbound'
+                                 const targetDir = this.dir === 'outbound' ? 'O' : 'I';
+                                 stopEtas = json.data.filter(e => e.dir === targetDir && e.eta).sort((a, b) => new Date(a.eta) - new Date(b.eta));
+                             }
+                         } catch (e) { console.warn('CTB ETA fetch fail', stopInfo.stop); }
+                         
+                         return { seq: parseInt(stopInfo.seq), name: name, etas: stopEtas };
+                    });
+                    
+                    rows = await Promise.all(promises);
+                }
+
                 this.lastRows = rows; 
                 this.renderList(this.lastRows); 
                 this.applyVisualState();   
@@ -1093,26 +1218,83 @@
 
     async function preloadAllRoutes() {
         try {
-            const res = await fetch('https://data.etabus.gov.hk/v1/transport/kmb/route/');
-            const json = await res.json();
-            const routeMap = new Map();
-            if (json.data) {
-                json.data.forEach(r => {
-                    if (!routeMap.has(r.route)) routeMap.set(r.route, { route: r.route, orig: r.orig_tc, dest: r.dest_tc });
+            // Fetch both KMB and CTB routes
+            const [kmbRes, ctbRes] = await Promise.all([
+                fetch(`${KMB_API_BASE}/route/`).catch(e => ({ json: () => ({ data: [] }) })),
+                fetch(`${CTB_API_BASE}/route/CTB`).catch(e => ({ json: () => ({ data: [] }) }))
+            ]);
+            
+            const kmbJson = await kmbRes.json();
+            const ctbJson = await ctbRes.json();
+            
+            const routeMap = [];
+            
+            if (kmbJson.data) {
+                kmbJson.data.forEach(r => {
+                    routeMap.push({ route: r.route, orig: r.orig_tc, dest: r.dest_tc, co: 'KMB' });
                     validRouteSet.add(r.route);
                 });
             }
-            allRoutesDB = Array.from(routeMap.values()).sort((a, b) => a.route.localeCompare(b.route, undefined, {numeric: true, sensitivity: 'base'}));
-        } catch (e) { console.error(e); }
+            
+            if (ctbJson.data) {
+                ctbJson.data.forEach(r => {
+                    routeMap.push({ route: r.route, orig: r.orig_tc, dest: r.dest_tc, co: 'CTB' });
+                    validRouteSet.add(r.route);
+                });
+            }
+
+            // Sort logic: Numeric part first, then alpha, then company
+            allRoutesDB = routeMap.sort((a, b) => {
+                const rA = a.route;
+                const rB = b.route;
+                const numA = parseInt(rA.replace(/\D/g, '')) || 0;
+                const numB = parseInt(rB.replace(/\D/g, '')) || 0;
+                
+                if (numA !== numB) return numA - numB;
+                if (rA !== rB) return rA.localeCompare(rB);
+                return a.co.localeCompare(b.co);
+            });
+            
+        } catch (e) { console.error('Route Preload Error', e); }
     }
 
-    async function getRouteStops(route, dir) {
-        try { const res = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/route-stop/${route}/${dir}/1`); const data = await res.json(); return data.data; } catch { return []; }
+    // --- API Helpers ---
+
+    async function getKmbRouteStops(route, dir) {
+        try { 
+            const res = await fetch(`${KMB_API_BASE}/route-stop/${route}/${dir}/1`); 
+            const data = await res.json(); 
+            return data.data; 
+        } catch { return []; }
     }
-    async function getStopName(stopId) {
-        if (kmbStopCache[stopId]) return kmbStopCache[stopId];
-        try { const res = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/stop/${stopId}`); const data = await res.json(); kmbStopCache[stopId] = data.data.name_tc; return data.data.name_tc; } catch { return '未知車站'; }
+
+    async function getCtbRouteStops(route, dir) {
+        try {
+            // CTB uses outbound/inbound in URL for direction usually
+            const res = await fetch(`${CTB_API_BASE}/route-stop/CTB/${route}/${dir}`);
+            const data = await res.json();
+            return data.data; // returns array of { stop, seq, dir, ... }
+        } catch { return []; }
     }
+
+    async function getStopName(stopId, company) {
+        // Shared cache but values should be unique or keyed
+        const key = `${company}_${stopId}`;
+        if (stopCache[key]) return stopCache[key];
+        
+        try {
+            let url = '';
+            if (company === 'KMB') url = `${KMB_API_BASE}/stop/${stopId}`;
+            else url = `${CTB_API_BASE}/stop/${stopId}`;
+
+            const res = await fetch(url);
+            const data = await res.json();
+            const name = data.data.name_tc;
+            stopCache[key] = name;
+            return name;
+        } catch { return '未知車站'; }
+    }
+
     const getMins = (iso) => { if (!iso) return '--'; const diff = Math.floor((new Date(iso) - new Date()) / 60000); return diff <= 0 ? '即將' : `${diff}分`; };
 
     function toggleDarkMode() {
