@@ -133,7 +133,7 @@
         .dir-opt.active { background: white; color: var(--kmb-red); font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .ctb-card .dir-opt.active { color: #C2A000; }
         .nlb-card .dir-opt.active { color: var(--nlb-green); }
-        .mtr-card .dir-opt.active { color: var(--mtr-purple); } /* MTR 按鈕文字改為紫色 */
+        .mtr-card .dir-opt.active { color: var(--mtr-purple); }
 
         .drag-handle { position: absolute; top: 12px; left: 10px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: rgba(255, 255, 255, 0.6); cursor: grab; z-index: 15; }
         .close-card-btn { position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; background: rgba(0, 0, 0, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold; font-size: 14px; backdrop-filter: blur(4px); z-index: 10; }
@@ -180,22 +180,49 @@
         }
         .pin-icon { display: inline-block; animation: pinDrop 0.4s ease-out; }
 
-        /* 統一的時間膠囊樣式 (Bus & MTR) */
-        .eta-minutes { font-size: 1rem; color: #34C759; font-weight: 700; background: #E8F5E9; padding: 4px 8px; border-radius: 6px; display: inline-block; min-width: 45px; text-align: center; margin-left: 4px; }
-        body.dark-mode .eta-minutes { background: rgba(52, 199, 89, 0.2); color: #32D74B; }
+        /* 統一的時間膠囊樣式 (Bus & MTR) - 淺色模式下強制綠色/紅色 */
+        .eta-minutes { 
+            font-size: 1rem; 
+            color: #34C759; /* Green Text */
+            font-weight: 700; 
+            background: #E8F5E9; /* Light Green BG */
+            padding: 4px 8px; 
+            border-radius: 6px; 
+            display: inline-block; 
+            min-width: 45px; 
+            text-align: center; 
+            margin-left: 4px; 
+        }
         
-        /* 緊急時間樣式 */
-        .urgent { color: #FF3B30 !important; background: #FFEBEE !important; }
-        body.dark-mode .urgent { background: rgba(255, 69, 58, 0.2) !important; color: #FF453A !important; }
+        /* 深色模式下的綠色樣式 */
+        body.dark-mode .eta-minutes { 
+            background: rgba(52, 199, 89, 0.2); 
+            color: #32D74B; 
+        }
         
-        /* 真實時間顯示樣式 */
+        /* 緊急/即將到達 (紅色) - 淺色模式 */
+        .urgent { 
+            color: #FF3B30 !important; 
+            background: #FFEBEE !important; 
+        }
+        
+        /* 緊急/即將到達 (紅色) - 深色模式 */
+        body.dark-mode .urgent { 
+            background: rgba(255, 69, 58, 0.2) !important; 
+            color: #FF453A !important; 
+        }
+        
+        /* 真實時間顯示樣式 (透明底) */
         .eta-minutes.show-real-time { 
-            background: transparent; 
-            color: var(--text-main); 
+            background: transparent !important; 
+            color: var(--text-main) !important; 
             border: 1px solid rgba(142, 142, 147, 0.3); 
             font-family: "SF Pro Display", sans-serif; 
         }
         
+        /* 暫無班次樣式 */
+        .no-schedule { color: var(--text-sub); font-size: 0.85rem; }
+
         .status-msg { text-align: center; padding: 40px 20px; color: var(--text-sub); }
         .fading { opacity: 0.5; pointer-events: none; }
         #empty-state { text-align: center; padding: 60px 20px; color: var(--text-sub); display: flex; flex-direction: column; align-items: center; }
@@ -360,32 +387,87 @@
         setupDrag('saved-list-container', '.saved-item');
     });
 
-    // --- MTR Data ---
+    // --- MTR Data (Strictly Ordered Arrays) ---
     function buildMtrDb() {
         const MTR_DATA = {
-            'AEL': { name: '機場快綫', stations: { 'HOK': '香港', 'KOW': '九龍', 'TSY': '青衣', 'AIR': '機場', 'AWE': '博覽館' }},
-            'TCL': { name: '東涌綫', stations: { 'HOK': '香港', 'KOW': '九龍', 'OLY': '奧運', 'NAC': '南昌', 'LAK': '荔景', 'TSY': '青衣', 'SUN': '欣澳', 'TUC': '東涌' }},
-            'TML': { name: '屯馬綫', stations: { 'WKS': '烏溪沙', 'MOS': '馬鞍山', 'HEO': '恆安', 'TSH': '大水坑', 'SHM': '石門', 'CIO': '第一城', 'STW': '沙田圍', 'CKT': '車公廟', 'TAW': '大圍', 'HIK': '顯徑', 'DIH': '鑽石山', 'KAT': '啟德', 'SUW': '宋皇臺', 'TKW': '土瓜灣', 'HOM': '何文田', 'HUH': '紅磡', 'ETS': '尖東', 'AUS': '柯士甸', 'NAC': '南昌', 'MEF': '美孚', 'TWW': '荃灣西', 'KSR': '錦上路', 'YUL': '元朗', 'LOP': '朗屏', 'TIS': '天水圍', 'SIH': '兆康', 'TUM': '屯門' }},
-            'TKL': { name: '將軍澳綫', stations: { 'NOP': '北角', 'QUB': '鰂魚涌', 'YAT': '油塘', 'TIK': '調景嶺', 'TKO': '將軍澳', 'LHP': '康城', 'HAH': '坑口', 'POA': '寶琳' }},
-            'EAL': { name: '東鐵綫', stations: { 'ADM': '金鐘', 'EXC': '會展', 'HUH': '紅磡', 'MKK': '旺角東', 'KOT': '九龍塘', 'TAW': '大圍', 'SHT': '沙田', 'FOT': '火炭', 'RAC': '馬場', 'UNI': '大學', 'TAP': '大埔墟', 'TWO': '太和', 'FAN': '粉嶺', 'SHS': '上水', 'LOW': '羅湖', 'LMC': '落馬洲' }},
-            'SIL': { name: '南港島綫', stations: { 'ADM': '金鐘', 'OCP': '海洋公園', 'WCH': '黃竹坑', 'LET': '利東', 'SOH': '海怡半島' }},
-            'TWL': { name: '荃灣綫', stations: { 'CEN': '中環', 'ADM': '金鐘', 'TST': '尖沙咀', 'JOR': '佐敦', 'YMT': '油麻地', 'MOK': '旺角', 'PRE': '太子', 'SSP': '深水埗', 'CSW': '長沙灣', 'LCK': '荔枝角', 'MEF': '美孚', 'LAK': '荔景', 'KWF': '葵芳', 'KWH': '葵興', 'TWH': '大窩口', 'TSW': '荃灣' }},
-            'ISL': { name: '港島綫', stations: { 'KET': '堅尼地城', 'HKU': '香港大學', 'SYP': '西營盤', 'SHW': '上環', 'CEN': '中環', 'ADM': '金鐘', 'WAC': '灣仔', 'CAB': '銅鑼灣', 'TIH': '天后', 'FOH': '炮台山', 'NOP': '北角', 'QUB': '鰂魚涌', 'TAK': '太古', 'SWH': '西灣河', 'SKW': '筲箕灣', 'HFC': '杏花邨', 'CHW': '柴灣' }},
-            'KTL': { name: '觀塘綫', stations: { 'WHA': '黃埔', 'HOM': '何文田', 'YMT': '油麻地', 'MOK': '旺角', 'PRE': '太子', 'SKM': '石硤尾', 'KOT': '九龍塘', 'LOF': '樂富', 'WTS': '黃大仙', 'DIH': '鑽石山', 'CHH': '彩虹', 'KOB': '九龍灣', 'NTK': '牛頭角', 'KWT': '觀塘', 'LAT': '藍田', 'YAT': '油塘', 'TIK': '調景嶺' }},
-            'DRL': { name: '迪士尼綫', stations: { 'SUN': '欣澳', 'DIS': '迪士尼' }}
+            'AEL': { name: '機場快綫', stations: [
+                { c: 'HOK', n: '香港' }, { c: 'KOW', n: '九龍' }, { c: 'TSY', n: '青衣' },
+                { c: 'AIR', n: '機場' }, { c: 'AWE', n: '博覽館' }
+            ]},
+            'TCL': { name: '東涌綫', stations: [
+                { c: 'HOK', n: '香港' }, { c: 'KOW', n: '九龍' }, { c: 'OLY', n: '奧運' },
+                { c: 'NAC', n: '南昌' }, { c: 'LAK', n: '荔景' }, { c: 'TSY', n: '青衣' },
+                { c: 'SUN', n: '欣澳' }, { c: 'TUC', n: '東涌' }
+            ]},
+            'TML': { name: '屯馬綫', stations: [
+                { c: 'WKS', n: '烏溪沙' }, { c: 'MOS', n: '馬鞍山' }, { c: 'HEO', n: '恆安' },
+                { c: 'TSH', n: '大水坑' }, { c: 'SHM', n: '石門' }, { c: 'CIO', n: '第一城' },
+                { c: 'STW', n: '沙田圍' }, { c: 'CKT', n: '車公廟' }, { c: 'TAW', n: '大圍' },
+                { c: 'HIK', n: '顯徑' }, { c: 'DIH', n: '鑽石山' }, { c: 'KAT', n: '啟德' },
+                { c: 'SUW', n: '宋皇臺' }, { c: 'TKW', n: '土瓜灣' }, { c: 'HOM', n: '何文田' },
+                { c: 'HUH', n: '紅磡' }, { c: 'ETS', n: '尖東' }, { c: 'AUS', n: '柯士甸' },
+                { c: 'NAC', n: '南昌' }, { c: 'MEF', n: '美孚' }, { c: 'TWW', n: '荃灣西' },
+                { c: 'KSR', n: '錦上路' }, { c: 'YUL', n: '元朗' }, { c: 'LOP', n: '朗屏' },
+                { c: 'TIS', n: '天水圍' }, { c: 'SIH', n: '兆康' }, { c: 'TUM', n: '屯門' }
+            ]},
+            'TKL': { name: '將軍澳綫', stations: [
+                { c: 'NOP', n: '北角' }, { c: 'QUB', n: '鰂魚涌' }, { c: 'YAT', n: '油塘' },
+                { c: 'TIK', n: '調景嶺' }, { c: 'TKO', n: '將軍澳' }, { c: 'HAH', n: '坑口' },
+                { c: 'POA', n: '寶琳' }, { c: 'LHP', n: '康城' } 
+            ]},
+            'EAL': { name: '東鐵綫', stations: [
+                { c: 'ADM', n: '金鐘' }, { c: 'EXC', n: '會展' }, { c: 'HUH', n: '紅磡' },
+                { c: 'MKK', n: '旺角東' }, { c: 'KOT', n: '九龍塘' }, { c: 'TAW', n: '大圍' },
+                { c: 'SHT', n: '沙田' }, { c: 'FOT', n: '火炭' }, { c: 'RAC', n: '馬場' },
+                { c: 'UNI', n: '大學' }, { c: 'TAP', n: '大埔墟' }, { c: 'TWO', n: '太和' },
+                { c: 'FAN', n: '粉嶺' }, { c: 'SHS', n: '上水' }, { c: 'LOW', n: '羅湖' },
+                { c: 'LMC', n: '落馬洲' }
+            ]},
+            'SIL': { name: '南港島綫', stations: [
+                { c: 'ADM', n: '金鐘' }, { c: 'OCP', n: '海洋公園' }, { c: 'WCH', n: '黃竹坑' },
+                { c: 'LET', n: '利東' }, { c: 'SOH', n: '海怡半島' }
+            ]},
+            'TWL': { name: '荃灣綫', stations: [
+                { c: 'CEN', n: '中環' }, { c: 'ADM', n: '金鐘' }, { c: 'TST', n: '尖沙咀' },
+                { c: 'JOR', n: '佐敦' }, { c: 'YMT', n: '油麻地' }, { c: 'MOK', n: '旺角' },
+                { c: 'PRE', n: '太子' }, { c: 'SSP', n: '深水埗' }, { c: 'CSW', n: '長沙灣' },
+                { c: 'LCK', n: '荔枝角' }, { c: 'MEF', n: '美孚' }, { c: 'LAK', n: '荔景' },
+                { c: 'KWF', n: '葵芳' }, { c: 'KWH', n: '葵興' }, { c: 'TWH', n: '大窩口' },
+                { c: 'TSW', n: '荃灣' }
+            ]},
+            'ISL': { name: '港島綫', stations: [
+                { c: 'KET', n: '堅尼地城' }, { c: 'HKU', n: '香港大學' }, { c: 'SYP', n: '西營盤' },
+                { c: 'SHW', n: '上環' }, { c: 'CEN', n: '中環' }, { c: 'ADM', n: '金鐘' },
+                { c: 'WAC', n: '灣仔' }, { c: 'CAB', n: '銅鑼灣' }, { c: 'TIH', n: '天后' },
+                { c: 'FOH', n: '炮台山' }, { c: 'NOP', n: '北角' }, { c: 'QUB', n: '鰂魚涌' },
+                { c: 'TAK', n: '太古' }, { c: 'SWH', n: '西灣河' }, { c: 'SKW', n: '筲箕灣' },
+                { c: 'HFC', n: '杏花邨' }, { c: 'CHW', n: '柴灣' }
+            ]},
+            'KTL': { name: '觀塘綫', stations: [
+                { c: 'WHA', n: '黃埔' }, { c: 'HOM', n: '何文田' }, { c: 'YMT', n: '油麻地' },
+                { c: 'MOK', n: '旺角' }, { c: 'PRE', n: '太子' }, { c: 'SKM', n: '石硤尾' },
+                { c: 'KOT', n: '九龍塘' }, { c: 'LOF', n: '樂富' }, { c: 'WTS', n: '黃大仙' },
+                { c: 'DIH', n: '鑽石山' }, { c: 'CHH', n: '彩虹' }, { c: 'KOB', n: '九龍灣' },
+                { c: 'NTK', n: '牛頭角' }, { c: 'KWT', n: '觀塘' }, { c: 'LAT', n: '藍田' },
+                { c: 'YAT', n: '油塘' }, { c: 'TIK', n: '調景嶺' }
+            ]},
+            'DRL': { name: '迪士尼綫', stations: [
+                { c: 'SUN', n: '欣澳' }, { c: 'DIS', n: '迪士尼' }
+            ]}
         };
 
         allMtrLines = Object.entries(MTR_DATA).map(([lineCode, lineData]) => ({
             lineCode,
             lineName: lineData.name,
-            stations: lineData.stations
+            stations: lineData.stations.reduce((acc, s) => { acc[s.c] = s.n; return acc; }, {}),
+            orderedStations: lineData.stations
         }));
 
         for (const [lineCode, lineData] of Object.entries(MTR_DATA)) {
-            for (const [staCode, staName] of Object.entries(lineData.stations)) {
-                allMtrStations.push({ lineCode, staCode, lineName: lineData.name, staName });
-                if (!mtrStationNames[staCode]) mtrStationNames[staCode] = staName;
-            }
+            lineData.stations.forEach(s => {
+                allMtrStations.push({ lineCode, staCode: s.c, lineName: lineData.name, staName: s.n });
+                if (!mtrStationNames[s.c]) mtrStationNames[s.c] = s.n;
+            });
         }
     }
 
@@ -738,6 +820,10 @@
                 const destName = mtrStationNames[train.dest] || train.dest;
                 const arrivalTime = new Date(train.time);
                 const diffMins = Math.round((arrivalTime - new Date()) / 60000);
+                
+                // Filter ridiculous times
+                if (diffMins > 120 || diffMins < -5) return '';
+
                 const minStr = diffMins <= 0 ? '即將' : `${diffMins}分`;
                 const timeStr = arrivalTime.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
                 const platCircled = ['⓪','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'][parseInt(train.plat)] || `(${train.plat})`;
@@ -884,15 +970,16 @@
 
         async fetchData() {
             this.element.querySelector('.update-time').innerText = '更新中...';
-            const stationCodes = Object.keys(this.lineInfo.stations);
+            // Use the strictly ordered station list
+            const stationList = this.lineInfo.orderedStations;
 
             try {
                 const responses = await Promise.all(
-                    stationCodes.map(staCode => fetch(`${MTR_API}?line=${this.lineCode}&sta=${staCode}&lang=TC`).then(res => res.json()))
+                    stationList.map(s => fetch(`${MTR_API}?line=${this.lineCode}&sta=${s.c}&lang=TC`).then(res => res.json()))
                 );
                 const allData = responses.map((data, i) => ({
-                    staCode: stationCodes[i],
-                    schedule: data.data ? data.data[`${this.lineCode}-${stationCodes[i]}`] : null,
+                    staCode: stationList[i].c,
+                    schedule: data.data ? data.data[`${this.lineCode}-${stationList[i].c}`] : null,
                 }));
                 
                 this.render(allData);
@@ -908,65 +995,60 @@
             const contentEl = this.element.querySelector('.card-content');
             let finalHtml = '';
             
-            // Sort orders
-            const TML_ORDER = ['TUM', 'SIH', 'TIS', 'LOP', 'YUL', 'KSR', 'TWW', 'MEF', 'NAC', 'AUS', 'ETS', 'HUH', 'HOM', 'TKW', 'SUW', 'KAT', 'DIH', 'HIK', 'TAW', 'CKT', 'STW', 'CIO', 'SHM', 'TSH', 'HEO', 'MOS', 'WKS'];
-            const EAL_ORDER = ['ADM', 'EXC', 'HUH', 'MKK', 'KOT', 'TAW', 'SHT', 'FOT', 'RAC', 'UNI', 'TAP', 'TWO', 'FAN', 'SHS', 'LOW', 'LMC'];
-            
-            const orderMap = { 'TML': TML_ORDER, 'EAL': EAL_ORDER };
-            if(orderMap[this.lineCode]) {
-                const order = (this.dir === 'DOWN') ? [...orderMap[this.lineCode]].reverse() : orderMap[this.lineCode];
-                data.sort((a,b) => order.indexOf(a.staCode) - order.indexOf(b.staCode));
+            // For DOWN direction, reverse the data array to show from terminal to start
+            if (this.dir === 'DOWN') {
+                data.reverse();
             }
             
             // Build HTML with Serial Numbers
             let serial = 1;
             for (const stationData of data) {
                 const { staCode, schedule } = stationData;
-                if (!schedule || stationData.error) continue;
+                let trainHtml = '';
 
-                const trains = schedule[this.dir];
-                if (!trains || trains.length === 0) continue;
+                // Only process trains if schedule exists and is valid
+                if (schedule) {
+                    const trains = schedule[this.dir] || [];
+                    trainHtml = trains.map(train => {
+                        if (this.lineCode === 'EAL' && this.dir === 'UP' && !['LOW', 'LMC', 'SHT', 'TAP', 'FAN', 'SHS'].includes(train.dest)) return '';
+                        if (this.lineCode === 'TKL' && this.dir === 'UP' && !['POA', 'LHP'].includes(train.dest)) return '';
+                        
+                        const destName = mtrStationNames[train.dest] || train.dest;
+                        const arrivalTime = new Date(train.time);
+                        const diffMins = Math.round((arrivalTime - new Date()) / 60000);
+                        
+                        // Filter Logic: Ghost trains (>120 mins) or passed trains (< -5 mins)
+                        if (diffMins > 120 || diffMins < -5) return '';
 
-                const trainHtml = trains.map(train => {
-                    if (this.lineCode === 'EAL' && this.dir === 'UP' && !['LOW', 'LMC', 'SHT', 'TAP', 'FAN', 'SHS'].includes(train.dest)) return '';
-                    if (this.lineCode === 'TKL' && this.dir === 'UP' && !['POA', 'LHP'].includes(train.dest)) return '';
-                    
-                    const destName = mtrStationNames[train.dest] || train.dest;
-                    const arrivalTime = new Date(train.time);
-                    const diffMins = Math.round((arrivalTime - new Date()) / 60000);
-                    const minStr = diffMins <= 0 ? '即將' : `${diffMins}分`;
-                    const timeStr = arrivalTime.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
-                    const platCircled = ['⓪','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'][parseInt(train.plat)] || `(${train.plat})`;
+                        const minStr = diffMins <= 0 ? '即將' : `${diffMins}分`;
+                        const timeStr = arrivalTime.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
+                        const platCircled = ['⓪','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'][parseInt(train.plat)] || `(${train.plat})`;
 
-                    // Format: [Time] [Plat] [Dest]
-                    const minDisplay = `${minStr}`;
-                    const timeDisplay = `${timeStr}`;
-                    
-                    return `
-                        <div class="mtr-compact-eta">
-                            <span class="eta-minutes ${diffMins <= 1 ? 'urgent' : ''}" data-min="${minDisplay}" data-time="${timeDisplay}">${minDisplay}</span>
-                            <span class="mtr-eta-details">${platCircled} ${destName}</span>
-                        </div>`;
-                }).join('');
-
-                if (trainHtml.trim()) {
-                     finalHtml += `
-                        <div class="schedule-item" data-stacode="${staCode}" data-serial="${serial}" onclick="window.cardRegistry['${this.id}'].toggleMode(this)">
-                            <div class="stop-info">
-                                <span class="dest-seq" onclick="window.cardRegistry['${this.id}'].pin(event, '${staCode}')">${serial}</span>
-                                <span class="dest-name">${mtrStationNames[staCode]}</span>
-                            </div>
-                            <div class="eta-container">${trainHtml}</div>
-                        </div>`;
-                     serial++;
+                        return `
+                            <div class="mtr-compact-eta">
+                                <span class="eta-minutes ${diffMins <= 1 ? 'urgent' : ''}" data-min="${minStr}" data-time="${timeStr}">${minStr}</span>
+                                <span class="mtr-eta-details">${platCircled} ${destName}</span>
+                            </div>`;
+                    }).join('');
                 }
+
+                // If no valid train info, show "No Schedule" text but KEEP ROW
+                if (!trainHtml.trim()) {
+                    trainHtml = '<span class="no-schedule">暫無班次</span>';
+                }
+
+                finalHtml += `
+                    <div class="schedule-item" data-stacode="${staCode}" data-serial="${serial}" onclick="window.cardRegistry['${this.id}'].toggleMode(this)">
+                        <div class="stop-info">
+                            <span class="dest-seq" onclick="window.cardRegistry['${this.id}'].pin(event, '${staCode}')">${serial}</span>
+                            <span class="dest-name">${mtrStationNames[staCode]}</span>
+                        </div>
+                        <div class="eta-container">${trainHtml}</div>
+                    </div>`;
+                serial++;
             }
             
-            if (!finalHtml) {
-                this.renderError(`此方向 (${LINE_TERMINALS[this.lineCode][this.dir]}) 暫無班次資料`);
-            } else {
-                contentEl.innerHTML = finalHtml;
-            }
+            contentEl.innerHTML = finalHtml;
             this.applyVisual();
         }
     }
