@@ -1,3 +1,4 @@
+<
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
@@ -54,7 +55,7 @@
         }
         .menu-btn { font-size: 1.5rem; padding: 4px 4px; cursor: pointer; color: var(--text-main); }
         
-        /* --- MTR 按鈕與泡泡 (無滑動條優化) --- */
+        /* --- MTR 按鈕與泡泡 --- */
         .mtr-trigger-btn {
             width: 40px; height: 40px; border-radius: 50%; 
             background: var(--card-bg); color: var(--text-main);
@@ -70,7 +71,6 @@
         .mtr-popup {
             position: absolute;
             width: 280px; max-width: 90vw; 
-            /* 移除 max-height 和 scroll，改為 auto height 和 hidden overflow */
             height: auto;
             overflow: hidden; 
             background: var(--card-bg);
@@ -82,14 +82,12 @@
             border: 1px solid var(--separator);
         }
         
-        /* 頂部泡泡樣式 */
         .mtr-popup.top-popup {
             top: 60px; left: 10px;
             transform-origin: top left;
             animation: popInTop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         
-        /* 底部泡泡樣式 (向上彈出) */
         .mtr-popup.bottom-popup {
             bottom: 60px; left: 0px;
             top: auto;
@@ -102,34 +100,18 @@
         @keyframes popInTop { from { opacity: 0; transform: scale(0.8) translateY(-10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         @keyframes popInBottom { from { opacity: 0; transform: scale(0.8) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
-        .mtr-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px; 
-        }
+        .mtr-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
         .mtr-line-item {
-            background: rgba(0,0,0,0.03);
-            border-radius: 8px;
-            padding: 8px;
-            display: flex; align-items: center; gap: 6px;
-            cursor: pointer; transition: background 0.2s;
+            background: rgba(0,0,0,0.03); border-radius: 8px; padding: 8px;
+            display: flex; align-items: center; gap: 6px; cursor: pointer; transition: background 0.2s;
         }
         .mtr-line-item:active { background: rgba(0,0,0,0.1); }
         .mtr-color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
         .mtr-line-name { font-weight: 600; font-size: 0.85rem; color: var(--text-main); }
         
-        /* 泡泡箭頭 */
-        .mtr-popup-arrow {
-            position: absolute; width: 12px; height: 12px; background: var(--card-bg);
-        }
-        .mtr-popup-arrow.top-arrow {
-            top: -6px; left: 24px; transform: rotate(45deg);
-            border-left: 1px solid var(--separator); border-top: 1px solid var(--separator);
-        }
-        .mtr-popup-arrow.bottom-arrow {
-            bottom: -6px; left: 24px; transform: rotate(225deg);
-            border-left: 1px solid var(--separator); border-top: 1px solid var(--separator);
-        }
+        .mtr-popup-arrow { position: absolute; width: 12px; height: 12px; background: var(--card-bg); }
+        .mtr-popup-arrow.top-arrow { top: -6px; left: 24px; transform: rotate(45deg); border-left: 1px solid var(--separator); border-top: 1px solid var(--separator); }
+        .mtr-popup-arrow.bottom-arrow { bottom: -6px; left: 24px; transform: rotate(225deg); border-left: 1px solid var(--separator); border-top: 1px solid var(--separator); }
 
         /* --- 搜尋輸入框 --- */
         .search-wrapper { position: relative; flex: 1; }
@@ -190,34 +172,34 @@
         .card-header { 
             background: linear-gradient(135deg, #E3001B, #C20017); 
             padding: 12px 16px; color: white; display: flex; flex-direction: column; gap: 8px; 
-            position: relative; padding-left: 40px;
+            position: relative;
             border-top-left-radius: 16px; border-top-right-radius: 16px;
+            cursor: grab;
         }
+        .card-header:active { cursor: grabbing; }
+
         .ctb-card .card-header { background: linear-gradient(135deg, var(--ctb-yellow), #E6C100); }
         .nlb-card .card-header { background: linear-gradient(135deg, var(--nlb-green), #005F6B); }
         .mtr-card .card-header { background: linear-gradient(135deg, var(--mtr-purple), #4a48b8); }
 
         .ctb-card .close-card-btn, .nlb-card .close-card-btn, .mtr-card .close-card-btn { background: rgba(0, 0, 0, 0.1); color: white; }
+        
         .dir-opt { flex: 1; text-align: center; font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); padding: 6px 4px; border-radius: 6px; cursor: pointer; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .dir-opt.active { background: white; color: var(--kmb-red); font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .ctb-card .dir-opt.active { color: #C2A000; }
         .nlb-card .dir-opt.active { color: var(--nlb-green); }
         .mtr-card .dir-opt.active { color: var(--mtr-purple); }
 
-        /* 漢堡包拖曳手柄樣式 */
-        .drag-handle { 
-            position: absolute; top: 12px; left: 10px; width: 24px; height: 24px; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 1.2rem; color: rgba(255, 255, 255, 0.6); 
-            cursor: grab; z-index: 15; 
-        }
-        .drag-handle:active { cursor: grabbing; color: white; }
-
         .close-card-btn { position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; background: rgba(0, 0, 0, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold; font-size: 14px; backdrop-filter: blur(4px); z-index: 10; }
+        
         .header-top { display: flex; justify-content: space-between; align-items: center; padding-right: 30px; }
         .icon { font-size: 1.4rem; margin-right: 8px; }
         .card-title { font-size: 1.3rem; font-weight: 800; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .direction-switch { display: flex; background: rgba(0, 0, 0, 0.1); padding: 3px; border-radius: 8px; margin-top: 4px; }
+        
+        .update-time { font-size: 0.8rem; opacity: 0.8; cursor: pointer; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
+        .update-time:active { opacity: 1; }
+
+        .direction-switch { display: flex; background: rgba(0, 0, 0, 0.1); padding: 3px; border-radius: 8px; margin-top: 4px; cursor: default; }
         
         .card-content { padding: 4px 16px 16px; min-height: 50px; }
         
@@ -232,8 +214,20 @@
         .mtr-direction-group { padding: 8px 0; }
         .mtr-direction-group:not(:last-child) { border-bottom: 1px dashed var(--separator); }
 
+        .mtr-train-grid {
+            display: grid;
+            grid-template-rows: auto auto;
+            grid-auto-flow: column;
+            column-gap: 12px;
+            row-gap: 4px;
+            align-items: center;
+            justify-items: center;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
         .mtr-compact-eta { font-size: 1rem; text-align: right; margin-left: 6px; display: inline-flex; align-items: center; }
-        .mtr-compact-eta .mtr-eta-details { font-size: 0.9rem; color: var(--text-sub); margin-left: 4px; }
+        .mtr-eta-details { font-size: 0.9rem; color: var(--text-sub); margin-left: 0; white-space: nowrap; }
 
         @keyframes pinDrop {
             0% { transform: translateY(-20px) scale(1.2); opacity: 0; }
@@ -247,10 +241,15 @@
             font-size: 1rem; color: #34C759; font-weight: 700; background: #E8F5E9; 
             padding: 4px 8px; border-radius: 6px; display: inline-block; min-width: 45px; text-align: center; margin-left: 4px; 
         }
+        .mtr-train-grid .eta-minutes { margin-left: 0; }
+
         body.dark-mode .eta-minutes { background: rgba(52, 199, 89, 0.2); color: #32D74B; }
         .urgent { color: #FF3B30 !important; background: #FFEBEE !important; }
         body.dark-mode .urgent { background: rgba(255, 69, 58, 0.2) !important; color: #FF453A !important; }
-        .eta-minutes.show-real-time { background: transparent !important; color: var(--text-main) !important; border: 1px solid rgba(142, 142, 147, 0.3); font-family: "SF Pro Display", sans-serif; }
+        
+        .eta-minutes.show-real-time { border: 1px solid rgba(142, 142, 147, 0.3); font-family: "SF Pro Display", sans-serif; }
+        .eta-minutes.departed { opacity: 0.6; color: var(--text-sub) !important; background: transparent !important; border: 1px solid currentColor; font-weight: 400; }
+        
         .no-schedule { color: var(--text-sub); font-size: 0.85rem; }
         .status-msg { text-align: center; padding: 40px 20px; color: var(--text-sub); }
         .fading { opacity: 0.5; pointer-events: none; }
@@ -314,6 +313,10 @@
         <span class="setting-label">黑暗模式</span>
         <label class="ios-switch"><input type="checkbox" id="dm-toggle" onchange="toggleDarkMode()"><span class="slider"></span></label>
     </div>
+    <div class="sidebar-settings">
+        <span class="setting-label">24小時制</span>
+        <label class="ios-switch"><input type="checkbox" id="time-fmt-toggle" onchange="toggleTimeFormat()"><span class="slider"></span></label>
+    </div>
     <div class="sidebar-content" id="saved-list-container"></div>
     <div class="sidebar-footer">
         <button class="save-all-btn" onclick="saveCurrentAsGroup()">＋ 儲存當前版面</button>
@@ -325,10 +328,7 @@
     <div class="search-area">
         <div class="menu-btn" onclick="toggleSidebar(true)">☰</div>
         
-        <!-- 頂部 MTR 按鈕 -->
         <button class="mtr-trigger-btn" id="mtr-btn-top" onclick="toggleMtrPopup('top')">🚇</button>
-        
-        <!-- 頂部 MTR 泡泡 (向下彈出) -->
         <div id="mtr-popup-top" class="mtr-popup top-popup" onclick="event.stopPropagation()">
             <div class="mtr-popup-arrow top-arrow"></div>
             <div style="font-weight:700; margin-bottom:8px; font-size:0.85rem; color:var(--text-sub);">選擇港鐵路綫</div>
@@ -354,15 +354,10 @@
             </div>
         </div>
         
-        <!-- 底部新增區 -->
         <div id="add-card-section">
             <button id="show-add-btn" class="add-circle-btn" onclick="toggleAddSearch(true)">＋</button>
             <div id="add-search-wrapper">
-                
-                <!-- 底部 MTR 按鈕 -->
                 <button class="mtr-trigger-btn" id="mtr-btn-bottom" onclick="toggleMtrPopup('bottom')">🚇</button>
-                
-                <!-- 底部 MTR 泡泡 (向上彈出) -->
                 <div id="mtr-popup-bottom" class="mtr-popup bottom-popup" onclick="event.stopPropagation()">
                     <div class="mtr-popup-arrow bottom-arrow"></div>
                     <div style="font-weight:700; margin-bottom:8px; font-size:0.85rem; color:var(--text-sub);">選擇港鐵路綫</div>
@@ -370,7 +365,6 @@
                 </div>
 
                 <div class="search-wrapper">
-                    <!-- 更新: placeholder 統一為 "輸入路線 / 車站" -->
                     <input type="text" id="add-route-input" class="search-input" placeholder="輸入路線 / 車站" value="" autocomplete="off"
                            oninput="debouncedHandleInput(this, 'add-suggestions', 'add-clear-search')" 
                            onfocus="handleInput(this, 'add-suggestions', 'add-clear-search')"
@@ -386,7 +380,6 @@
 </div>
 
 <script>
-    /* --- 工具函數 --- */
     function debounce(func, wait) {
         let timeout;
         return function(...args) {
@@ -407,6 +400,10 @@
     let allMtrLines = [];
     let mtrStationNames = {};
 
+    let is24hMode = true;
+
+    const cleanName = (n) => n ? n.replace(/\s*\([A-Z0-9\s]+\)$/, '').trim() : '';
+
     const LINE_COLORS = {
         'AEL': '#007078', 'TCL': '#F38B00', 'TML': '#923011', 'TKL': '#692E6C',
         'EAL': '#53B7E8', 'SIL': '#B6BD00', 'TWL': '#E2231A', 'ISL': '#0071CE',
@@ -421,6 +418,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         initDarkMode();
+        initTimeFormat(); 
         buildMtrDb();
         preloadAllRoutes(); 
         StorageManager.loadAll(); 
@@ -430,7 +428,6 @@
             if (!e.target.closest('.search-wrapper')) {
                 document.querySelectorAll('.suggestions-list').forEach(el => el.classList.remove('show'));
             }
-            // 點擊外部關閉所有 MTR Popups
             if (!e.target.closest('.mtr-popup') && !e.target.closest('.mtr-trigger-btn')) {
                 document.querySelectorAll('.mtr-popup').forEach(el => el.classList.remove('show'));
                 document.querySelectorAll('.mtr-trigger-btn').forEach(el => el.classList.remove('active'));
@@ -451,7 +448,6 @@
         setupDrag('saved-list-container', '.saved-item');
     });
 
-    // --- MTR Popup Logic (支援 Top 和 Bottom) ---
     function toggleMtrPopup(position) {
         event.stopPropagation();
         const popupId = `mtr-popup-${position}`;
@@ -460,7 +456,6 @@
         const btn = document.getElementById(btnId);
         const isShowing = popup.classList.contains('show');
         
-        // 先關閉所有其他 popup
         document.querySelectorAll('.mtr-popup').forEach(el => el.classList.remove('show'));
         document.querySelectorAll('.mtr-trigger-btn').forEach(el => el.classList.remove('active'));
 
@@ -485,20 +480,12 @@
     }
 
     function onMtrLineSelect(lineCode, source) {
-        // 如果來源是 'top'，則清除所有卡片 (查詢模式)
-        if (source === 'top') {
-            clearAllCards(false);
-        }
-        // 如果來源是 'bottom'，則保留卡片 (新增模式)
-        // 無論哪種情況都建立新卡片
+        if (source === 'top') clearAllCards(false);
         createMtrLineCard(lineCode);
-        
-        // 關閉所有彈出視窗
         document.querySelectorAll('.mtr-popup').forEach(el => el.classList.remove('show'));
         document.querySelectorAll('.mtr-trigger-btn').forEach(el => el.classList.remove('active'));
     }
 
-    // --- MTR Data ---
     function buildMtrDb() {
         const MTR_DATA = {
             'AEL': { name: '機場快綫', stations: [{ c: 'HOK', n: '香港' }, { c: 'KOW', n: '九龍' }, { c: 'TSY', n: '青衣' }, { c: 'AIR', n: '機場' }, { c: 'AWE', n: '博覽館' }]},
@@ -528,7 +515,6 @@
         'KTL': { UP: '調景嶺', DOWN: '黃埔' }, 'DRL': { UP: '迪士尼', DOWN: '欣澳' }
     };
 
-    // --- Storage Manager ---
     const StorageManager = {
         key: 'hk_transport_saved_list',
         tempList: null,
@@ -603,7 +589,6 @@
         }
     };
 
-    // --- Sidebar & UI Actions ---
     function toggleSidebar(show) {
         const sb = document.getElementById('sidebar'), ov = document.getElementById('overlay');
         if (show) { sb.classList.add('active'); ov.classList.add('active'); }
@@ -674,7 +659,6 @@
         document.getElementById('add-card-section').style.display = 'none';
     }
 
-    // --- Input & Search ---
     function toggleAddSearch(show) {
         document.getElementById('show-add-btn').style.display = show ? 'none' : 'flex';
         const wrapper = document.getElementById('add-search-wrapper');
@@ -691,7 +675,6 @@
             return;
         }
         
-        // Unified Search Logic: Bus + MTR Line + MTR Station
         const busMatches = allRoutesDB.filter(r => r.route.startsWith(upperVal)).slice(0, 50);
         const mtrLineMatches = allMtrLines.filter(l => l.lineName.includes(val) || l.lineCode.startsWith(upperVal));
         const mtrStationMatches = allMtrStations.filter(s => s.staName.includes(val) || s.staCode.startsWith(upperVal)).slice(0, 20);
@@ -727,37 +710,69 @@
     function selectSuggestion(params) {
         const { type, inputId, listId } = params;
         const inputEl = document.getElementById(inputId);
-        
         document.getElementById(listId).classList.remove('show');
-        
         const actionMap = {
             'BUS': () => createCard(params.route, params.co),
             'MTR_LINE': () => createMtrLineCard(params.lineCode),
             'MTR_STATION': () => createMtrLineCard(params.lineCode, null, params.staCode)
         };
-
-        if (inputId === 'route-input') {
-            clearAllCards(false);
-            actionMap[type]();
-        } else {
-            actionMap[type]();
-            toggleAddSearch(false);
-        }
+        if (inputId === 'route-input') { clearAllCards(false); actionMap[type](); } 
+        else { actionMap[type](); toggleAddSearch(false); }
         inputEl.value = '';
     }
 
-    function triggerShake(id) { const el = document.getElementById(id); el.classList.add('shake'); setTimeout(() => el.classList.remove('shake'), 400); el.focus(); }
+    function triggerShake(id) { 
+        const el = document.getElementById(id); 
+        el.classList.remove('shake');
+        void el.offsetWidth; 
+        el.classList.add('shake'); 
+        setTimeout(() => el.classList.remove('shake'), 400); 
+        el.focus(); 
+    }
     
-    function searchTopItem() { 
-        const input = document.getElementById('route-input');
-        if (!input.value) return triggerShake('route-input');
-        alert('請從建議列表中選擇一個項目。');
+    function performSearch(inputId) {
+        const input = document.getElementById(inputId);
+        const val = input.value.trim().toUpperCase();
+        const listId = inputId === 'route-input' ? 'suggestions' : 'add-suggestions';
+        
+        if (!val) { triggerShake(inputId); return; }
+
+        const line = allMtrLines.find(l => l.lineName === val || l.lineCode === val);
+        if (line) {
+            if(inputId === 'route-input') clearAllCards(false);
+            createMtrLineCard(line.lineCode);
+            finishSearch(inputId, listId);
+            return;
+        }
+
+        const station = allMtrStations.find(s => s.staName === val || s.staCode === val);
+        if (station) {
+            if(inputId === 'route-input') clearAllCards(false);
+            createMtrCard(station.lineCode, station.staCode);
+            finishSearch(inputId, listId);
+            return;
+        }
+
+        const bus = allRoutesDB.find(r => r.route === val);
+        if (bus) {
+            if(inputId === 'route-input') clearAllCards(false);
+            createCard(bus.route, bus.co);
+            finishSearch(inputId, listId);
+            return;
+        }
+        triggerShake(inputId);
     }
-    function addItem() {
-         const input = document.getElementById('add-route-input');
-         if (!input.value) return triggerShake('add-route-input');
-         alert('請從建議列表中選擇一個項目。');
+
+    function finishSearch(inputId, listId) {
+        const el = document.getElementById(inputId);
+        el.value = ''; el.blur();
+        document.getElementById(listId).classList.remove('show');
+        document.getElementById(inputId==='route-input'?'clear-search':'add-clear-search').style.display='none';
+        if (inputId === 'add-route-input') toggleAddSearch(false);
     }
+    
+    function searchTopItem() { performSearch('route-input'); }
+    function addItem() { performSearch('add-route-input'); }
     
     function createCard(route, company, saved = null) {
         const id = `card-${++cardCounter}`;
@@ -795,27 +810,38 @@
         }
     }
 
+    function getCardHeaderHtml(id, titleHtml, extraHtml = '') {
+        return `
+            <div class="card-header" 
+                 onmousedown="if(!event.target.closest('.close-card-btn, .dir-opt, .update-time')) this.closest('.card').setAttribute('draggable', 'true')" 
+                 onmouseup="this.closest('.card').setAttribute('draggable', 'false')"
+                 ontouchstart="if(!event.target.closest('.close-card-btn, .dir-opt, .update-time')) this.closest('.card').setAttribute('draggable', 'true')" 
+                 ontouchend="this.closest('.card').setAttribute('draggable', 'false')">
+                
+                <div class="close-card-btn" onclick="window.cardRegistry['${id}'].destroy()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">✕</div>
+                <div class="header-top">
+                    <div style="display:flex;align-items:center;">${titleHtml}</div>
+                    <div class="update-time" onclick="window.cardRegistry['${id}'].fetchData()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"></div>
+                </div>
+                ${extraHtml}
+            </div>`;
+    }
+
     class MTRStationCard extends BaseCard {
         constructor(lineCode, staCode, id, saved) {
             super();
             this.id = id; this.lineCode = lineCode; this.staCode = staCode;
             this.stationInfo = allMtrStations.find(s => s.lineCode === lineCode && s.staCode === staCode);
             this.element = null; this.timer = null;
+            this.viewMode = 'MIN'; // MIN or TIME
         }
         init() {
             document.getElementById('empty-state')?.remove();
             const div = document.createElement('div');
-            // 預設不可拖曳
             div.setAttribute('draggable', 'false');
             div.className = 'card mtr-card'; div.id = this.id; 
             div.innerHTML = `
-                <div class="card-header">
-                    <div class="drag-handle" 
-                         onmousedown="this.closest('.card').setAttribute('draggable', 'true')" 
-                         onmouseup="this.closest('.card').setAttribute('draggable', 'false')">≡</div>
-                    <div class="close-card-btn" onclick="window.cardRegistry['${this.id}'].destroy()">✕</div>
-                    <div class="header-top"><div style="display:flex;align-items:center;"><span class="icon">🚇</span><span class="card-title">${this.stationInfo.staName} <small>(${this.stationInfo.lineName})</small></span></div><div style="font-size:0.8rem;opacity:0.8" class="update-time"></div></div>
-                </div>
+                ${getCardHeaderHtml(this.id, `<span class="icon">🚇</span><span class="card-title">${this.stationInfo.staName} <small>(${this.stationInfo.lineName})</small></span>`)}
                 <div class="card-content"><div class="status-msg">正在獲取列車資料...</div></div>`;
             document.getElementById('cards-container').appendChild(div);
             this.element = div;
@@ -833,27 +859,49 @@
                 const data = await response.json();
                 if (data.status === 0) { this.renderError(data.message || '服務現正暫停'); return; }
                 this.render(data.data[`${this.lineCode}-${this.staCode}`]);
-                this.element.querySelector('.update-time').innerText = '更新於 ' + new Date().toLocaleTimeString('zh-HK', {hour:'2-digit', minute:'2-digit'});
+                this.element.querySelector('.update-time').innerText = '更新於 ' + formatTime(new Date());
             } catch (e) { this.renderError('資料載入失敗，請稍後再試'); console.error(e); }
         }
-        toggleTime(el) {
-            const timeSpan = el.querySelector('.eta-minutes'); if (!timeSpan) return;
-            const isMinView = timeSpan.innerText === timeSpan.dataset.min;
-            timeSpan.innerText = isMinView ? timeSpan.dataset.time : timeSpan.dataset.min;
-            timeSpan.classList.toggle('show-real-time', isMinView);
+        toggleMode() {
+            this.viewMode = this.viewMode === 'MIN' ? 'TIME' : 'MIN';
+            this.fetchData(); // re-render to apply logic
         }
         _formatTrains(trains) {
             if (!trains || trains.length === 0) return '';
-            return trains.map(train => {
-                const destName = mtrStationNames[train.dest] || train.dest;
+            
+            const items = trains.map(train => {
                 const arrivalTime = new Date(train.time);
-                const diffMins = Math.round((arrivalTime - new Date()) / 60000);
-                if (diffMins > 120 || diffMins < -5) return '';
-                const minStr = diffMins <= 0 ? '即將' : `${diffMins}分`;
-                const timeStr = arrivalTime.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
+                // Use floor to correctly handle past times. -0.1 min is -1 (past), 0.1 min is 0 (immediate)
+                const diffMins = Math.floor((arrivalTime - new Date()) / 60000);
+                
+                if (diffMins < -5) return null; // Filter out old trains
+                
+                let minStr;
+                let isPast = false;
+                if (diffMins < 0) {
+                    minStr = '已開出';
+                    isPast = true;
+                } else if (diffMins === 0) {
+                    minStr = '即將';
+                } else {
+                    minStr = `${diffMins}分`;
+                }
+
+                const timeStr = formatTime(arrivalTime);
+                const destName = mtrStationNames[train.dest] || train.dest;
                 const platCircled = ['⓪','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'][parseInt(train.plat)] || `(${train.plat})`;
-                return `<div class="mtr-compact-eta" onclick="window.cardRegistry['${this.id}'].toggleTime(this)"><span class="eta-minutes ${diffMins <= 1 ? 'urgent' : ''}" data-min="${minStr}" data-time="${timeStr}">${minStr}</span><span class="mtr-eta-details">${platCircled} ${destName}</span></div>`;
-            }).join('');
+                const isUrgent = !isPast && (diffMins <= 1);
+
+                const displayText = (this.viewMode === 'TIME') ? timeStr : minStr;
+                const classList = `eta-minutes ${isUrgent ? 'urgent' : ''} ${this.viewMode === 'TIME' ? 'show-real-time' : ''} ${isPast ? 'departed' : ''}`;
+
+                // Onclick toggles the global card mode
+                return `<span class="${classList}" onclick="window.cardRegistry['${this.id}'].toggleMode()">${displayText}</span><span class="mtr-eta-details">${platCircled} ${destName}</span>`;
+            }).filter(x => x);
+
+            if (items.length === 0) return '';
+            const inner = items.join('');
+            return `<div class="mtr-train-grid">${inner}</div>`;
         }
         render(data) {
             const contentEl = this.element.querySelector('.card-content');
@@ -883,14 +931,10 @@
             div.setAttribute('draggable', 'false');
             div.className = 'card mtr-card'; div.id = this.id; 
             const terminals = LINE_TERMINALS[this.lineCode];
+            const extraHtml = `<div class="direction-switch" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><span class="dir-opt btn-up" onclick="window.cardRegistry['${this.id}'].switchDir('UP')">往 ${terminals.UP}</span><span class="dir-opt btn-down" onclick="window.cardRegistry['${this.id}'].switchDir('DOWN')">往 ${terminals.DOWN}</span></div>`;
+            
             div.innerHTML = `
-                <div class="card-header">
-                    <div class="drag-handle" 
-                         onmousedown="this.closest('.card').setAttribute('draggable', 'true')" 
-                         onmouseup="this.closest('.card').setAttribute('draggable', 'false')">≡</div>
-                    <div class="close-card-btn" onclick="window.cardRegistry['${this.id}'].destroy()">✕</div>
-                    <div class="header-top"><div style="display:flex;align-items:center;"><span class="icon">🚇</span><span class="card-title">${this.lineInfo.lineName}</span></div><div style="font-size:0.8rem;opacity:0.8" class="update-time"></div></div><div class="direction-switch"><span class="dir-opt btn-up" onclick="window.cardRegistry['${this.id}'].switchDir('UP')">往 ${terminals.UP}</span><span class="dir-opt btn-down" onclick="window.cardRegistry['${this.id}'].switchDir('DOWN')">往 ${terminals.DOWN}</span></div>
-                </div>
+                ${getCardHeaderHtml(this.id, `<span class="icon">🚇</span><span class="card-title">${this.lineInfo.lineName}</span>`, extraHtml)}
                 <div class="card-content"><div class="status-msg">正在獲取整條綫列車資料...</div></div>`;
             document.getElementById('cards-container').appendChild(div);
             this.element = div;
@@ -902,9 +946,19 @@
         switchDir(dir) { if (this.dir === dir) return; this.dir = dir; this.filteredSeq = null; this.markedSeq = null; this.updateUI(); this.fetchData(); }
         updateUI() { this.element.querySelector('.btn-up').classList.toggle('active', this.dir === 'UP'); this.element.querySelector('.btn-down').classList.toggle('active', this.dir === 'DOWN'); }
         renderError(message) { this.element.querySelector('.card-content').innerHTML = `<div class="status-msg error">${message}</div>`; }
-        toggleMode(el) {
-            const isTime = el.classList.toggle('mode-time');
-            el.querySelectorAll('.eta-minutes').forEach(s => { s.innerText = s.dataset[isTime ? 'time' : 'min']; s.classList.toggle('show-real-time', isTime); });
+        toggleMode(el, forceToTime = false) {
+            const isTime = el.classList.contains('mode-time');
+            // If forcing to time and already time, do nothing. If not time, toggle.
+            // If simple click (not force), toggle.
+            if (forceToTime && isTime) return;
+            
+            el.classList.toggle('mode-time');
+            const showTime = el.classList.contains('mode-time');
+            
+            el.querySelectorAll('.eta-minutes').forEach(s => { 
+                s.innerText = s.dataset[showTime ? 'time' : 'min']; 
+                s.classList.toggle('show-real-time', showTime); 
+            });
         }
         pin(e, staCode) {
             e.stopPropagation();
@@ -929,10 +983,14 @@
                 const responses = await Promise.all(stationList.map(s => fetch(`${MTR_API}?line=${this.lineCode}&sta=${s.c}&lang=TC`).then(res => res.json())));
                 const allData = responses.map((data, i) => ({ staCode: stationList[i].c, schedule: data.data ? data.data[`${this.lineCode}-${stationList[i].c}`] : null, }));
                 this.render(allData);
-                this.element.querySelector('.update-time').innerText = '更新於 ' + new Date().toLocaleTimeString('zh-HK', {hour:'2-digit', minute:'2-digit'});
+                this.element.querySelector('.update-time').innerText = '更新於 ' + formatTime(new Date());
             } catch (e) { this.renderError('全綫資料載入失敗'); console.error(e); }
         }
         render(data) {
+            // Check which rows are currently in Time mode
+            const activeStaCodes = new Set();
+            this.element.querySelectorAll('.schedule-item.mode-time').forEach(el => activeStaCodes.add(el.dataset.stacode));
+
             const contentEl = this.element.querySelector('.card-content');
             let finalHtml = '';
             if (this.dir === 'DOWN') data.reverse();
@@ -942,25 +1000,45 @@
                 let trainHtml = '';
                 if (schedule) {
                     const trains = schedule[this.dir] || [];
-                    trainHtml = trains.map(train => {
-                        if (this.lineCode === 'EAL' && this.dir === 'UP' && !['LOW', 'LMC', 'SHT', 'TAP', 'FAN', 'SHS'].includes(train.dest)) return '';
-                        if (this.lineCode === 'TKL' && this.dir === 'UP' && !['POA', 'LHP'].includes(train.dest)) return '';
-                        const destName = mtrStationNames[train.dest] || train.dest;
+                    const items = trains.map(train => {
+                        if (this.lineCode === 'EAL' && this.dir === 'UP' && !['LOW', 'LMC', 'SHT', 'TAP', 'FAN', 'SHS'].includes(train.dest)) return null;
+                        if (this.lineCode === 'TKL' && this.dir === 'UP' && !['POA', 'LHP'].includes(train.dest)) return null;
+                        
                         const arrivalTime = new Date(train.time);
-                        const diffMins = Math.round((arrivalTime - new Date()) / 60000);
-                        if (diffMins > 120 || diffMins < -5) return '';
-                        const minStr = diffMins <= 0 ? '即將' : `${diffMins}分`;
-                        const timeStr = arrivalTime.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
+                        const diffMins = Math.floor((arrivalTime - new Date()) / 60000);
+                        if (diffMins < -5) return null;
+                        
+                        let minStr;
+                        let isPast = false;
+                        if (diffMins < 0) { minStr = '已開出'; isPast = true; }
+                        else if (diffMins === 0) minStr = '即將';
+                        else minStr = `${diffMins}分`;
+
+                        const timeStr = formatTime(arrivalTime);
+                        const destName = mtrStationNames[train.dest] || train.dest;
                         const platCircled = ['⓪','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'][parseInt(train.plat)] || `(${train.plat})`;
-                        return `<div class="mtr-compact-eta"><span class="eta-minutes ${diffMins <= 1 ? 'urgent' : ''}" data-min="${minStr}" data-time="${timeStr}">${minStr}</span><span class="mtr-eta-details">${platCircled} ${destName}</span></div>`;
-                    }).join('');
+                        const isUrgent = !isPast && (diffMins <= 1);
+                        const classList = `eta-minutes ${isUrgent ? 'urgent' : ''} ${isPast ? 'departed' : ''}`;
+
+                        return `<span class="${classList}" data-min="${minStr}" data-time="${timeStr}">${minStr}</span><span class="mtr-eta-details">${platCircled} ${destName}</span>`;
+                    }).filter(x => x);
+
+                    if (items.length > 0) {
+                        trainHtml = `<div class="mtr-train-grid">${items.join('')}</div>`;
+                    }
                 }
-                if (!trainHtml.trim()) trainHtml = '<span class="no-schedule">暫無班次</span>';
+                if (!trainHtml) trainHtml = '<span class="no-schedule">暫無班次</span>';
                 finalHtml += `<div class="schedule-item" data-stacode="${staCode}" data-serial="${serial}" onclick="window.cardRegistry['${this.id}'].toggleMode(this)"><div class="stop-info"><span class="dest-seq" onclick="window.cardRegistry['${this.id}'].pin(event, '${staCode}')">${serial}</span><span class="dest-name">${mtrStationNames[staCode]}</span></div><div class="eta-container">${trainHtml}</div></div>`;
                 serial++;
             }
             contentEl.innerHTML = finalHtml;
             this.applyVisual();
+            
+            // Restore Time Mode
+            activeStaCodes.forEach(code => {
+                const row = this.element.querySelector(`.schedule-item[data-stacode="${code}"]`);
+                if(row) this.toggleMode(row, true);
+            });
         }
     }
 
@@ -983,14 +1061,10 @@
             const div = document.createElement('div');
             div.setAttribute('draggable', 'false');
             div.className = `card ${cardClass}`; div.id = this.id; 
+            const extraHtml = `<div class="direction-switch" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><span class="dir-opt btn-out" onclick="window.cardRegistry['${this.id}'].switchDir('outbound')">往 ...</span><span class="dir-opt btn-in" onclick="window.cardRegistry['${this.id}'].switchDir('inbound')">往 ...</span></div>`;
+
             div.innerHTML = `
-                <div class="card-header">
-                    <div class="drag-handle" 
-                         onmousedown="this.closest('.card').setAttribute('draggable', 'true')" 
-                         onmouseup="this.closest('.card').setAttribute('draggable', 'false')">≡</div>
-                    <div class="close-card-btn" onclick="window.cardRegistry['${this.id}'].destroy()">✕</div>
-                    <div class="header-top"><div style="display:flex;align-items:center;"><span class="icon">🚌</span><span class="card-title">${coName} ${this.route}</span></div><div style="font-size:0.8rem;opacity:0.8" class="update-time"></div></div><div class="direction-switch"><span class="dir-opt btn-out" onclick="window.cardRegistry['${this.id}'].switchDir('outbound')">往 ...</span><span class="dir-opt btn-in" onclick="window.cardRegistry['${this.id}'].switchDir('inbound')">往 ...</span></div>
-                </div>
+                ${getCardHeaderHtml(this.id, `<span class="icon">🚌</span><span class="card-title">${coName} ${this.route}</span>`, extraHtml)}
                 <div class="card-content"><div class="status-msg">正在分析路線資料...</div></div>`;
             document.getElementById('cards-container').appendChild(div);
             this.element = div;
@@ -1011,7 +1085,7 @@
                         const data = await fetch(`${NLB_API}/stop.php?action=list&routeId=${variant.routeId}`).then(r=>r.json());
                         const stops = data.stops || [];
                         stops.forEach(s => stopCache[`NLB_${s.stopId}`] = s.stopName_c);
-                        return stops.map((s, i) => ({ stop: s.stopId, seq: i+1, name: s.stopName_c }));
+                        return stops.map((s, i) => ({ stop: s.stopId, seq: i+1, name: cleanName(s.stopName_c) }));
                     } catch { return []; }
                 };
                 [outStops, inStops] = await Promise.all([processNLB(variants[0], 'outbound'), processNLB(variants[1], 'inbound')]);
@@ -1024,6 +1098,8 @@
                 const getName = async (list) => list.length ? await getStopName(list[list.length-1].stop, this.company) : '';
                 [outName, inName] = await Promise.all([getName(outStops), getName(inStops)]);
             }
+            outName = cleanName(outName);
+            inName = cleanName(inName);
             this.element.querySelector('.btn-out').innerText = outStops.length ? `往 ${outName || '去程'}` : '去程 (無資料)';
             this.element.querySelector('.btn-in').innerText = inStops.length ? `往 ${inName || '回程'}` : '回程 (無資料)';
             this.element.querySelector('.btn-in').style.display = inStops.length ? 'block' : 'none';
@@ -1053,13 +1129,13 @@
                     if (this.company === 'KMB') {
                         const allEtas = (await (await fetch(`${KMB_API}/route-eta/${this.route}/1`)).json()).data || [];
                         const dirCode = this.dir === 'outbound' ? 'O' : 'I';
-                        rows = await Promise.all(this.currentStops.map(async s => ({ seq: parseInt(s.seq), name: await getStopName(s.stop, 'KMB'), etas: allEtas.filter(e => e.seq === parseInt(s.seq) && e.dir === dirCode && e.eta).sort((a,b)=>new Date(a.eta)-new Date(b.eta)) })));
+                        rows = await Promise.all(this.currentStops.map(async s => ({ seq: parseInt(s.seq), name: cleanName(await getStopName(s.stop, 'KMB')), etas: allEtas.filter(e => e.seq === parseInt(s.seq) && e.dir === dirCode && e.eta).sort((a,b)=>new Date(a.eta)-new Date(b.eta)) })));
                     } else { 
-                        rows = await Promise.all(this.currentStops.map(async s => { const data = (await (await fetch(`${CTB_API}/eta/CTB/${s.stop}/${this.route}`)).json()).data || []; return { seq: parseInt(s.seq), name: await getStopName(s.stop, 'CTB'), etas: data.filter(e => e.dir === (this.dir === 'outbound' ? 'O' : 'I') && e.eta).sort((a,b)=>new Date(a.eta)-new Date(b.eta)) }; }));
+                        rows = await Promise.all(this.currentStops.map(async s => { const data = (await (await fetch(`${CTB_API}/eta/CTB/${s.stop}/${this.route}`)).json()).data || []; return { seq: parseInt(s.seq), name: cleanName(await getStopName(s.stop, 'CTB')), etas: data.filter(e => e.dir === (this.dir === 'outbound' ? 'O' : 'I') && e.eta).sort((a,b)=>new Date(a.eta)-new Date(b.eta)) }; }));
                     }
                     this.render(rows); this.lastRenderedDir = this.dir;
                 }
-                this.element.querySelector('.update-time').innerText = '更新於 ' + new Date().toLocaleTimeString('zh-HK', {hour:'2-digit', minute:'2-digit'});
+                this.element.querySelector('.update-time').innerText = '更新於 ' + formatTime(new Date());
             } catch (e) { listEl.innerHTML = '<div class="status-msg error">資料載入失敗</div>'; console.error(e); }
             listEl.classList.remove('fading');
         }
@@ -1067,16 +1143,39 @@
             if (!etas || !etas.length) return '<span style="color:var(--text-sub);font-size:0.85rem;">暫無班次</span>';
             return etas.slice(0,3).map(e => {
                 const diff = Math.floor((new Date(e.eta) - new Date())/60000);
-                const minStr = diff <= 0 ? '即將' : diff+'分';
-                const timeStr = new Date(e.eta).toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
-                return `<span class="eta-minutes ${diff <= 1 ? 'urgent' : ''}" data-min="${minStr}" data-time="${timeStr}" style="margin-left:4px;">${minStr}</span>`;
+                
+                let minStr;
+                let isPast = false;
+                if (diff < 0) { minStr = '已開出'; isPast = true; }
+                else if (diff === 0) minStr = '即將';
+                else minStr = diff+'分';
+                
+                const timeStr = formatTime(new Date(e.eta));
+                const classList = `eta-minutes ${(!isPast && diff <= 1) ? 'urgent' : ''} ${isPast ? 'departed' : ''}`;
+                return `<span class="${classList}" data-min="${minStr}" data-time="${timeStr}" style="margin-left:4px;">${minStr}</span>`;
             }).join('');
         }
         render(rows) {
+            const activeSeqs = new Set();
+            this.element.querySelectorAll('.schedule-item.mode-time').forEach(el => activeSeqs.add(parseInt(el.dataset.seq)));
+
             const el = this.element.querySelector('.card-content');
             if(!rows.length) { el.innerHTML = '<div class="status-msg">暫無資料</div>'; return; }
-            el.innerHTML = rows.sort((a,b)=>a.seq-b.seq).map(r => `<div class="schedule-item" data-seq="${r.seq}" onclick="window.cardRegistry['${this.id}'].toggleMode(this)"><div class="stop-info"><span class="dest-seq" onclick="window.cardRegistry['${this.id}'].pin(event,${r.seq})">${r.seq}</span><span class="dest-name">${r.name}</span></div><div class="eta-container">${this.generateTimeHtml(r.etas)}</div></div>`).join('');
+            el.innerHTML = rows.sort((a,b)=>a.seq-b.seq).map(r => `
+                <div class="schedule-item" data-seq="${r.seq}" onclick="window.cardRegistry['${this.id}'].toggleMode(this)">
+                    <div class="stop-info">
+                        <span class="dest-seq" onclick="window.cardRegistry['${this.id}'].pin(event,${r.seq})">${r.seq}</span>
+                        <span class="dest-name">${r.name}</span>
+                    </div>
+                    <div class="eta-container">${this.generateTimeHtml(r.etas)}</div>
+                </div>`).join('');
             this.applyVisual();
+            
+            // Restore Time Mode
+            activeSeqs.forEach(seq => {
+                const row = this.element.querySelector(`.schedule-item[data-seq="${seq}"]`);
+                if(row) this.toggleMode(row, true);
+            });
         }
         updateRow(seq, etas) {
             const container = this.element.querySelector(`.schedule-item[data-seq="${seq}"] .eta-container`);
@@ -1084,12 +1183,12 @@
             container.innerHTML = this.generateTimeHtml(etas);
             if (container.parentElement.classList.contains('mode-time')) this.toggleMode(container.parentElement, true);
         }
-        toggleMode(el, forceToMin = false) {
+        toggleMode(el, forceToTime = false) {
             const isTime = el.classList.contains('mode-time');
-            if (forceToMin && !isTime) return;
-            if (forceToMin && isTime) { el.classList.remove('mode-time'); } else { el.classList.toggle('mode-time'); }
-            const shouldBeTime = el.classList.contains('mode-time');
-            el.querySelectorAll('.eta-minutes').forEach(s => { s.innerText = s.dataset[shouldBeTime ? 'time' : 'min']; s.classList.toggle('show-real-time', shouldBeTime); });
+            if (forceToTime && isTime) return;
+            el.classList.toggle('mode-time');
+            const showTime = el.classList.contains('mode-time');
+            el.querySelectorAll('.eta-minutes').forEach(s => { s.innerText = s.dataset[showTime ? 'time' : 'min']; s.classList.toggle('show-real-time', showTime); });
         }
         pin(e, seq) { e.stopPropagation(); if(this.filteredSeq === seq) { this.filteredSeq = null; this.markedSeq = null; } else if(this.markedSeq === seq) { this.filteredSeq = seq; } else { this.markedSeq = seq; this.filteredSeq = null; } this.applyVisual(); }
         applyVisual() {
@@ -1128,6 +1227,32 @@
     }
     function toggleDarkMode() { const on = document.getElementById('dm-toggle').checked; document.body.classList.toggle('dark-mode', on); localStorage.setItem('darkMode', on ? 'enabled' : 'disabled'); }
     function initDarkMode() { const m = localStorage.getItem('darkMode'); if (m === 'enabled' || (!m && window.matchMedia('(prefers-color-scheme: dark)').matches)) { document.body.classList.add('dark-mode'); document.getElementById('dm-toggle').checked = true; } }
+
+    function initTimeFormat() {
+        const fmt = localStorage.getItem('timeFormat');
+        if (fmt === '12h') {
+            is24hMode = false;
+            document.getElementById('time-fmt-toggle').checked = false;
+        } else {
+            is24hMode = true; 
+            document.getElementById('time-fmt-toggle').checked = true;
+        }
+    }
+
+    function toggleTimeFormat() {
+        is24hMode = document.getElementById('time-fmt-toggle').checked;
+        localStorage.setItem('timeFormat', is24hMode ? '24h' : '12h');
+        Object.values(window.cardRegistry).forEach(card => card.fetchData());
+    }
+
+    function formatTime(date) {
+        if (!date) return '';
+        return date.toLocaleTimeString('zh-HK', {
+            hour: '2-digit', 
+            minute: '2-digit', 
+            hour12: !is24hMode 
+        });
+    }
 </script>
 </body>
 </html>
