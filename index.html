@@ -167,7 +167,7 @@
             animation: slideIn 0.3s ease-out; flex-shrink: 0; overflow: hidden;
             transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
         }
-        .card.dragging { opacity: 0.5; background: #f8f8f8; box-shadow: 0 10px 20px rgba(0,0,0,0.2); z-index: 100; }
+        .card.dragging { opacity: 0.5; background: #f8f8f8; box-shadow: 0 10px 20px rgba(0,0,0,0.2); z-index: 100; transform: scale(1.02); }
         @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         
         .card-header { 
@@ -283,7 +283,7 @@
         input:checked + .slider:before { transform: translateX(20px); }
         body.dark-mode .slider { background-color: #39393D; }
         .saved-item { padding: 12px 16px; border-bottom: 1px solid var(--separator); display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: var(--card-bg); transition: background 0.2s; position: relative; }
-        .saved-item.dragging { opacity: 0.5; background: #e0e0e0; }
+        .saved-item.dragging { opacity: 0.5; background: #e0e0e0; transform: scale(1.02); z-index: 100;}
         
         .saved-drag-handle, .delete-btn { display: none; }
         .sidebar-content.editing .saved-drag-handle, .sidebar-content.editing .delete-btn { display: flex; } 
@@ -442,8 +442,11 @@
             }
         });
         
+        // Setup Drag modified for Mobile Support
         const setupDrag = (containerId, selector) => {
             const el = document.getElementById(containerId);
+            
+            // --- Desktop Drag ---
             el.addEventListener('dragover', e => {
                 e.preventDefault();
                 const draggable = document.querySelector(`${selector}.dragging`);
@@ -451,7 +454,54 @@
                 const afterEl = getDragAfterElement(el, e.clientY, selector);
                 if (afterEl == null) el.appendChild(draggable); else el.insertBefore(draggable, afterEl);
             });
+
+            // --- Mobile Touch Drag (Fix for iOS) ---
+            let touchEl = null;
+
+            el.addEventListener('touchstart', e => {
+                // Find the draggable item based on selector
+                const item = e.target.closest(selector);
+                if (!item) return;
+
+                // Validate drag handle area
+                let canDrag = false;
+                if (selector === '.card') {
+                    // Only header is draggable, avoid buttons
+                    const header = e.target.closest('.card-header');
+                    if (header && !e.target.closest('.close-card-btn, .dir-opt, .update-time')) {
+                        canDrag = true;
+                    }
+                } else if (selector === '.saved-item') {
+                    // Only in edit mode, avoid delete button
+                    if (isEditMode && !e.target.closest('.delete-btn')) {
+                        canDrag = true;
+                    }
+                }
+
+                if (canDrag) {
+                    touchEl = item;
+                    item.classList.add('dragging');
+                    document.body.style.overflow = 'hidden'; // Prevent page scroll while dragging
+                }
+            }, {passive: false});
+
+            el.addEventListener('touchmove', e => {
+                if (!touchEl) return;
+                e.preventDefault(); // Important: Prevent scrolling
+                const touch = e.touches[0];
+                const afterEl = getDragAfterElement(el, touch.clientY, selector);
+                if (afterEl == null) el.appendChild(touchEl); else el.insertBefore(touchEl, afterEl);
+            }, {passive: false});
+
+            el.addEventListener('touchend', e => {
+                if (!touchEl) return;
+                touchEl.classList.remove('dragging');
+                touchEl = null;
+                document.body.style.overflow = ''; // Restore page scroll
+                if (selector === '.saved-item' && isEditMode) StorageManager.updateOrder();
+            });
         };
+
         setupDrag('cards-container', '.card');
         setupDrag('saved-list-container', '.saved-item');
 
@@ -1230,6 +1280,13 @@
     }
     function toggleDarkMode() { const on = document.getElementById('dm-toggle').checked; document.body.classList.toggle('dark-mode', on); localStorage.setItem('darkMode', on ? 'enabled' : 'disabled'); }
     function initDarkMode() { const m = localStorage.getItem('darkMode'); if (m === 'enabled' || (!m && window.matchMedia('(prefers-color-scheme: dark)').matches)) { document.body.classList.add('dark-mode'); document.getElementById('dm-toggle').checked = true; } }
+
+    function toggleTimeFormat() {
+        is24hMode = document.getElementById('time-fmt-toggle').checked;
+        localStorage.setItem('timeFormat', is24hMode ? '24h' : '12h');
+        // Refresh all cards to show new time format
+        Object.values(window.cardRegistry).forEach(c => c.fetchData());
+    }
 
     function initTimeFormat() {
         const fmt = localStorage.getItem('timeFormat');
