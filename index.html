@@ -460,6 +460,14 @@
             if (isFixedSearch) return;
             const st = scrollEl.scrollTop;
             const searchArea = document.querySelector('.search-area');
+            const maxScroll = scrollEl.scrollHeight - scrollEl.clientHeight;
+
+            // 防止底部彈跳導致的閃爍 (Ignore scroll events near bottom)
+            if (st >= maxScroll - 50) {
+                lastScrollTop = st;
+                return;
+            }
+
             if (st > lastScrollTop && st > 20) {
                 searchArea.classList.add('scroll-hidden');
             } else if (st < lastScrollTop) {
@@ -1232,12 +1240,6 @@
             is24hMode = true; 
             document.getElementById('time-fmt-toggle').checked = true;
         }
-    }
-
-    function toggleTimeFormat() {
-        is24hMode = document.getElementById('time-fmt-toggle').checked;
-        localStorage.setItem('timeFormat', is24hMode ? '24h' : '12h');
-        Object.values(window.cardRegistry).forEach(card => card.fetchData());
     }
 
     function initFixedSearch() {
